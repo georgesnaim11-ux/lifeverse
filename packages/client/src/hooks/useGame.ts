@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { api } from '../api/client';
 import type {
   CharacterCreationInput,
@@ -20,6 +20,9 @@ import type {
   LifeSummary,
 } from '@lifeverse/shared';
 
+/** localStorage key holding the active character id so a refresh can resume. */
+const SAVED_CHARACTER_KEY = 'lifeverse:active-character-id';
+
 type GamePhase = 'home' | 'creating' | 'playing' | 'events' | 'outcome' | 'dead';
 
 interface GameState {
@@ -35,6 +38,7 @@ interface GameState {
   error: string | null;
   actionMessage: string | null;
   lifeSummary: LifeSummary | null;
+  hasSavedGame: boolean;
 }
 
 const INITIAL_STATE: GameState = {
@@ -50,6 +54,7 @@ const INITIAL_STATE: GameState = {
   error: null,
   actionMessage: null,
   lifeSummary: null,
+  hasSavedGame: false,
 };
 
 export function useGame() {
@@ -61,6 +66,32 @@ export function useGame() {
   const setError = (error: string) =>
     setState((s) => ({ ...s, isLoading: false, error }));
 
+  // On mount: check if a character ID was saved from a previous session.
+  useEffect(() => {
+    const savedId = localStorage.getItem(SAVED_CHARACTER_KEY);
+    if (savedId) {
+      setState((s) => ({ ...s, hasSavedGame: true }));
+    }
+  }, []);
+
+  // Reconnect to the saved character on the server and resume play.
+  const resumeGame = useCallback(async () => {
+    const savedId = localStorage.getItem(SAVED_CHARACTER_KEY);
+    if (!savedId) return;
+    setLoading(true);
+    try {
+      const fullData = await api.getCharacter(savedId);
+      setState((s) => ({
+        ...s, phase: 'playing', charState: fullData.state, fullData,
+        isLoading: false, hasSavedGame: true,
+      }));
+    } catch {
+      // Server doesn't have this character (DB was reset, etc.) — start fresh.
+      localStorage.removeItem(SAVED_CHARACTER_KEY);
+      setState((s) => ({ ...s, hasSavedGame: false, isLoading: false, error: null }));
+    }
+  }, []);
+
   const startCreation = useCallback(() => {
     setState((s) => ({ ...s, phase: 'creating', error: null }));
   }, []);
@@ -70,7 +101,8 @@ export function useGame() {
     try {
       const { state: charState } = await api.createCharacter(input);
       const fullData = await api.getCharacter(charState.character.id);
-      setState((s) => ({ ...s, phase: 'playing', charState, fullData, isLoading: false }));
+      localStorage.setItem(SAVED_CHARACTER_KEY, charState.character.id);
+      setState((s) => ({ ...s, phase: 'playing', charState, fullData, isLoading: false, hasSavedGame: true }));
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to create character');
     }
@@ -235,6 +267,7 @@ export function useGame() {
   }, []);
 
   const resetGame = useCallback(() => {
+    localStorage.removeItem(SAVED_CHARACTER_KEY);
     setState(INITIAL_STATE);
   }, []);
 
@@ -243,6 +276,7 @@ export function useGame() {
     currentEvent: state.pendingEvents[state.currentEventIndex] ?? null,
     totalEvents: state.pendingEvents.length,
     startCreation,
+    resumeGame,
     createCharacter,
     ageUp,
     makeChoice,

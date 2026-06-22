@@ -35,7 +35,17 @@ function fmt(n: number): string {
 }
 
 /* ─── Home ──────────────────────────────────────────────────── */
-function HomeScreen({ onStart }: { onStart: () => void }): JSX.Element {
+function HomeScreen({
+  onStart,
+  onResume,
+  hasSavedGame,
+  isLoading,
+}: {
+  onStart: () => void;
+  onResume: () => void;
+  hasSavedGame: boolean;
+  isLoading: boolean;
+}): JSX.Element {
   return (
     <div className="lv-home">
       <div className="lv-home-logo">LifeVerse</div>
@@ -55,8 +65,23 @@ function HomeScreen({ onStart }: { onStart: () => void }): JSX.Element {
           </div>
         ))}
       </div>
-      <button className="lv-btn lv-btn-primary" style={{ maxWidth: 320 }} onClick={onStart}>
-        Begin a New Life →
+      {hasSavedGame && (
+        <button
+          className="lv-btn lv-btn-primary"
+          style={{ maxWidth: 320 }}
+          onClick={onResume}
+          disabled={isLoading}
+        >
+          {isLoading ? 'Loading…' : 'Continue Life →'}
+        </button>
+      )}
+      <button
+        className={hasSavedGame ? 'lv-btn' : 'lv-btn lv-btn-primary'}
+        style={{ maxWidth: 320, marginTop: hasSavedGame ? 10 : 0 }}
+        onClick={onStart}
+        disabled={isLoading}
+      >
+        {hasSavedGame ? 'Start New Life' : 'Begin a New Life →'}
       </button>
     </div>
   );
@@ -295,7 +320,12 @@ export function App(): JSX.Element {
   return (
     <div className="lv-app">
       {game.phase === 'home' && (
-        <HomeScreen onStart={game.startCreation} />
+        <HomeScreen
+          onStart={game.startCreation}
+          onResume={game.resumeGame}
+          hasSavedGame={game.hasSavedGame}
+          isLoading={game.isLoading}
+        />
       )}
 
       {game.phase === 'creating' && (
