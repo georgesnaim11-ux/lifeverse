@@ -15,6 +15,8 @@
   ],
   "scripts": {
     "build": "tsc -b",
+    "build:prod": "npm run build -w @lifeverse/shared && npm run build -w @lifeverse/client && npm run build -w @lifeverse/server",
+    "start:prod": "node packages/server/dist/index.js",
     "clean": "tsc -b --clean",
     "typecheck": "tsc -b --verbose",
     "dev": "npm run dev --workspaces --if-present",

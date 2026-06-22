@@ -1,0 +1,16 @@
+# Render Blueprint — deploys LifeVerse as a single web service.
+# The Express server serves both the API and the built React client, so the
+# whole game lives at one URL. Render injects PORT automatically; the server
+# reads it via env. Free plan: the service sleeps when idle and has no
+# persistent disk, so the SQLite database resets on each deploy/restart.
+services:
+  - type: web
+    name: lifeverse
+    runtime: node
+    plan: free
+    # Build the shared package, the React client (Vite), then the server.
+    buildCommand: npm install && npm run build:prod
+    startCommand: npm run start:prod
+    envVars:
+      - key: NODE_ENV
+        value: production

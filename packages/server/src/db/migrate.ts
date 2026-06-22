@@ -74,7 +74,9 @@ export function runMigrations(): string[] {
 }
 
 // Allow `tsx src/db/migrate.ts` to run migrations directly from the CLI.
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+// Cross-platform: compare URL forms so it works on Windows (backslash) paths too.
+const invokedPath = process.argv[1];
+if (invokedPath && import.meta.url === pathToFileURL(invokedPath).href) {
   try {
     runMigrations();
   } catch (error) {
