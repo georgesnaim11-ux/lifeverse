@@ -7,15 +7,16 @@ import { EducationSheet } from './EducationSheet';
 import { RelationshipsSheet } from './RelationshipsSheet';
 import { FinanceSheet } from './FinanceSheet';
 import { HousingSheet } from './HousingSheet';
+import { GarageSheet } from './GarageSheet';
 import { MAJORS, getCountry } from '@lifeverse/shared';
 import type {
   CharacterState, GetCharacterResponse, PresentedEvent,
   EarnedAchievement, DomainState, CharacterResources,
-  JobState, JobEligibility, OwnedAsset, HousingState, Listing, OwnedProperty,
+  JobState, JobEligibility, HousingState, Listing, OwnedProperty, OwnedVehicle, VehicleListing,
 } from '@lifeverse/shared';
 import type { ActivityDefinition } from '@lifeverse/shared';
 
-type Sheet = 'none' | 'activity' | 'stats' | 'log' | 'career' | 'education' | 'shopping' | 'love' | 'finance';
+type Sheet = 'none' | 'activity' | 'stats' | 'log' | 'career' | 'education' | 'shopping' | 'garage' | 'love' | 'finance';
 type Phase = 'playing' | 'events' | 'outcome';
 
 interface Props {
@@ -26,7 +27,6 @@ interface Props {
   availableActivities: ActivityDefinition[];
   job: JobState | null;
   eligibleJobs: JobEligibility[];
-  ownedAssets: OwnedAsset[];
   phase: Phase;
   pendingEvents: PresentedEvent[];
   currentEventIndex: number;
@@ -50,7 +50,12 @@ interface Props {
   onStudy: () => void;
   onAttendClass: () => void;
   onTakeExam: () => void;
-  onBuyVehicle: (type: string) => void;
+  onBuyCar: (modelKey: string, year: number, condition: string, primary: boolean) => void;
+  onSellVehicle: (vehicleId: string) => void;
+  onSetPrimaryVehicle: (vehicleId: string) => void;
+  onServiceVehicle: (vehicleId: string) => void;
+  onRepairVehicle: (vehicleId: string) => void;
+  onWashVehicle: (vehicleId: string) => void;
   onRentProperty: (key: string) => void;
   onBuyHome: (key: string, moveIn?: boolean) => void;
   onSellProperty: (propertyId: string) => void;
@@ -110,13 +115,14 @@ const ACHIEVEMENT_LABELS: Record<string, string> = {
 export function MobileGameLayout(props: Props): JSX.Element {
   const {
     charState, fullData, domains, resources, availableActivities,
-    job, eligibleJobs, ownedAssets, phase, pendingEvents, currentEventIndex,
+    job, eligibleJobs, phase, pendingEvents, currentEventIndex,
     lastOutcome, newAchievements, isLoading, error, actionMessage,
     onAgeUp, onPerformActivity, onMakeChoice, onContinueAfterOutcome,
     onDismissAchievements, onClearMessage, onSave,
     onApplyJob, onPromote, onWorkHard, onQuitJob,
     onEnroll, onStudy, onAttendClass, onTakeExam,
-    onBuyVehicle, onRentProperty, onBuyHome, onSellProperty, onSetResidence, onToggleRentOut, onMoveInParents,
+    onBuyCar, onSellVehicle, onSetPrimaryVehicle, onServiceVehicle, onRepairVehicle, onWashVehicle,
+    onRentProperty, onBuyHome, onSellProperty, onSetResidence, onToggleRentOut, onMoveInParents,
     onFindPartner, onGoOnDate, onPropose, onPlanWedding, onDelayWedding, onCancelEngagement, onBreakUp,
     onTryForBaby, onToggleBirthControl, onDivorce,
   } = props;
@@ -132,6 +138,8 @@ export function MobileGameLayout(props: Props): JSX.Element {
   const housing: HousingState = fullData.housing ?? { characterId: character.id, tenure: 'parents', propertyKey: null, propertyLabel: null, tier: null, company: null, bedrooms: 0, bathrooms: 0, condition: null, monthlyExpense: 0, currentValue: 0, purchasePrice: 0, purchaseAge: null, appreciationRate: 0, residencePropertyId: null };
   const listings: Listing[] = fullData.listings ?? [];
   const properties: OwnedProperty[] = fullData.properties ?? [];
+  const garage: OwnedVehicle[] = fullData.garage ?? [];
+  const dealership: VehicleListing[] = fullData.dealership ?? [];
   const hasLivingParents = (fullData.relationships ?? []).some((r) => r.type === 'parent' && r.isAlive);
 
   // Auto-dismiss the action message toast
@@ -331,6 +339,9 @@ export function MobileGameLayout(props: Props): JSX.Element {
         <button className={`lv-nav-tab ${sheet === 'shopping' ? 'active' : ''}`} onClick={() => setSheet('shopping')}>
           <span className="lv-nav-tab-icon">🏠</span><span className="lv-nav-tab-label">Home</span>
         </button>
+        <button className={`lv-nav-tab ${sheet === 'garage' ? 'active' : ''}`} onClick={() => setSheet('garage')}>
+          <span className="lv-nav-tab-icon">🚗</span><span className="lv-nav-tab-label">Garage</span>
+        </button>
       </nav>
 
       {/* Sheets */}
@@ -340,9 +351,13 @@ export function MobileGameLayout(props: Props): JSX.Element {
       <CareerSheet isOpen={sheet === 'career'} onClose={closeSheet} job={job} eligibleJobs={eligibleJobs} isLoading={isLoading} onApply={onApplyJob} onPromote={onPromote} onWorkHard={onWorkHard} onQuit={onQuitJob} />
       <EducationSheet isOpen={sheet === 'education'} onClose={closeSheet} charState={charState} education={fullData.education} flags={flags} isLoading={isLoading} onEnroll={onEnroll} onStudy={onStudy} onAttendClass={onAttendClass} onTakeExam={onTakeExam} />
       <HousingSheet isOpen={sheet === 'shopping'} onClose={closeSheet} housing={housing} listings={listings} properties={properties}
-        finance={finance} ownedAssets={ownedAssets} age={character.age} hasLivingParents={hasLivingParents} isLoading={isLoading}
+        finance={finance} age={character.age} hasLivingParents={hasLivingParents} isLoading={isLoading}
         onRent={onRentProperty} onBuy={onBuyHome} onSellProperty={onSellProperty} onSetResidence={onSetResidence}
-        onToggleRentOut={onToggleRentOut} onMoveInParents={onMoveInParents} onBuyVehicle={onBuyVehicle} />
+        onToggleRentOut={onToggleRentOut} onMoveInParents={onMoveInParents} />
+      <GarageSheet isOpen={sheet === 'garage'} onClose={closeSheet} garage={garage} dealership={dealership}
+        finance={finance} age={character.age} isLoading={isLoading}
+        onBuy={onBuyCar} onSell={onSellVehicle} onSetPrimary={onSetPrimaryVehicle}
+        onService={onServiceVehicle} onRepair={onRepairVehicle} onWash={onWashVehicle} />
       <RelationshipsSheet isOpen={sheet === 'love'} onClose={closeSheet} relationships={fullData.relationships ?? []} flags={flags}
         age={character.age} cash={finance.cash} isLoading={isLoading}
         onFindPartner={onFindPartner} onDate={onGoOnDate} onPropose={onPropose} onPlanWedding={onPlanWedding}

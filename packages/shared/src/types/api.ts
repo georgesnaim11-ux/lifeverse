@@ -10,6 +10,7 @@ import type { JobState, JobEligibility } from './jobs.js';
 import type { OwnedAsset } from './shop.js';
 import type { Loan, ExpenseBreakdown, FinanceSummary, LifeSummary, TimelineEntry } from './finance.js';
 import type { HousingState, Listing, OwnedProperty } from './housing.js';
+import type { OwnedVehicle, VehicleListing } from './vehicles.js';
 import type { EducationRequirement, Major, PropertyType, VehicleType, WeddingTier } from './enums.js';
 
 /**
@@ -80,6 +81,10 @@ export interface GetCharacterResponse {
   listings: Listing[];
   /** Every property the character owns (residence + investments). */
   properties: OwnedProperty[];
+  /** Every vehicle the character owns (the garage). */
+  garage: OwnedVehicle[];
+  /** Vehicles available to buy at the dealership. */
+  dealership: VehicleListing[];
 }
 
 /** POST /api/game/age-up */

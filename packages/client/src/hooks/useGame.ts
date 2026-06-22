@@ -210,6 +210,12 @@ export function useGame() {
   const setResidence       = useCallback((propertyId: string) => runAction((id) => api.setResidence(id, propertyId)), [runAction]);
   const toggleRentOut      = useCallback((propertyId: string) => runAction((id) => api.toggleRentOut(id, propertyId)), [runAction]);
   const moveInParents      = useCallback(() => runAction(api.moveInParents), [runAction]);
+  const buyCar             = useCallback((modelKey: string, year: number, condition: string, primary = false) => runAction((id) => api.buyCar(id, modelKey, year, condition, primary)), [runAction]);
+  const sellVehicle        = useCallback((vehicleId: string) => runAction((id) => api.sellVehicle(id, vehicleId)), [runAction]);
+  const setPrimaryVehicle  = useCallback((vehicleId: string) => runAction((id) => api.setPrimaryVehicle(id, vehicleId)), [runAction]);
+  const serviceVehicle     = useCallback((vehicleId: string) => runAction((id) => api.serviceVehicle(id, vehicleId)), [runAction]);
+  const repairVehicle      = useCallback((vehicleId: string) => runAction((id) => api.repairVehicle(id, vehicleId)), [runAction]);
+  const washVehicle        = useCallback((vehicleId: string) => runAction((id) => api.washVehicle(id, vehicleId)), [runAction]);
   const tryForBaby         = useCallback(() => runAction(api.tryForBaby), [runAction]);
   const toggleBirthControl = useCallback(() => runAction(api.toggleBirthControl), [runAction]);
   const divorce            = useCallback(() => runAction(api.divorce), [runAction]);
@@ -268,6 +274,12 @@ export function useGame() {
     setResidence,
     toggleRentOut,
     moveInParents,
+    buyCar,
+    sellVehicle,
+    setPrimaryVehicle,
+    serviceVehicle,
+    repairVehicle,
+    washVehicle,
     clearMessage,
     continueAfterOutcome,
     dismissAchievements,

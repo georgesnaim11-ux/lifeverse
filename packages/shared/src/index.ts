@@ -24,6 +24,7 @@ export * from './types/jobs.js';
 export * from './types/shop.js';
 export * from './types/finance.js';
 export * from './types/housing.js';
+export * from './types/vehicles.js';
 
 // Constants
 export * from './constants/game.js';
@@ -35,3 +36,4 @@ export * from './data/majors.js';
 export * from './data/shop.js';
 export * from './data/countries.js';
 export * from './data/realestate.js';
+export * from './data/vehicles.js';

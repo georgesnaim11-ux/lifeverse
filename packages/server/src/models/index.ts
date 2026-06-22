@@ -26,3 +26,5 @@ export type { CreateLoanInput } from './loan.model.js';
 export { HousingModel } from './housing.model.js';
 export { PropertyModel } from './property.model.js';
 export type { CreatePropertyInput } from './property.model.js';
+export { VehicleModel } from './vehicle.model.js';
+export type { CreateVehicleInput } from './vehicle.model.js';

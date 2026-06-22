@@ -97,6 +97,20 @@ export const api = {
   moveInParents: (characterId: string) =>
     post<{ characterId: string }, { message: string }>('/housing/move-in-parents', { characterId }),
 
+  // Garage / vehicles
+  buyCar: (characterId: string, modelKey: string, year: number, condition: string, primary = false) =>
+    post<{ characterId: string; modelKey: string; year: number; condition: string; primary: boolean }, { message: string }>('/garage/buy', { characterId, modelKey, year, condition, primary }),
+  sellVehicle: (characterId: string, vehicleId: string) =>
+    post<{ characterId: string; vehicleId: string }, { message: string }>('/garage/sell', { characterId, vehicleId }),
+  setPrimaryVehicle: (characterId: string, vehicleId: string) =>
+    post<{ characterId: string; vehicleId: string }, { message: string }>('/garage/set-primary', { characterId, vehicleId }),
+  serviceVehicle: (characterId: string, vehicleId: string) =>
+    post<{ characterId: string; vehicleId: string }, { message: string }>('/garage/service', { characterId, vehicleId }),
+  repairVehicle: (characterId: string, vehicleId: string) =>
+    post<{ characterId: string; vehicleId: string }, { message: string }>('/garage/repair', { characterId, vehicleId }),
+  washVehicle: (characterId: string, vehicleId: string) =>
+    post<{ characterId: string; vehicleId: string }, { message: string }>('/garage/wash', { characterId, vehicleId }),
+
   // Relationships / love
   findPartner: (characterId: string) =>
     post<{ characterId: string }, { message: string }>('/relationship/find-partner', { characterId }),

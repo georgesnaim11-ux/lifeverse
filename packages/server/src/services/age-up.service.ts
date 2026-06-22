@@ -30,6 +30,7 @@ import { DomainService } from './domain.service.js';
 import { ActivityService } from './activity.service.js';
 import { JobService } from './job.service.js';
 import { HousingService } from './housing.service.js';
+import { GarageService } from './garage.service.js';
 import { JobModel, AssetsModel } from '../models/index.js';
 import { ACTIVITY_REGISTRY } from '../activities/registry.js';
 import { GAME_CONSTANTS, LIFE_STAGES_IN_ORDER } from '@lifeverse/shared';
@@ -137,6 +138,16 @@ export const AgeUpService = {
         StatsModel.update(characterId, applyDeltas(hs, [
           { stat: 'happiness', amount: housingStep.happinessDelta },
           { stat: 'health', amount: housingStep.healthDelta },
+        ]));
+        stats = StatsModel.findByCharacterId(characterId)!;
+      }
+
+      // Garage: vehicle depreciation + neglect-driven condition decay
+      const garageStep = GarageService.annualUpdate(characterId);
+      if (garageStep.happinessDelta !== 0) {
+        const gs = StatsModel.findByCharacterId(characterId)!;
+        StatsModel.update(characterId, applyDeltas(gs, [
+          { stat: 'happiness', amount: garageStep.happinessDelta },
         ]));
         stats = StatsModel.findByCharacterId(characterId)!;
       }

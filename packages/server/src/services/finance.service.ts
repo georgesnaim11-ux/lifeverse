@@ -1,4 +1,4 @@
-import { FinanceModel, AssetsModel, LoanModel, HousingModel, PropertyModel } from '../models/index.js';
+import { FinanceModel, AssetsModel, LoanModel, HousingModel, PropertyModel, VehicleModel } from '../models/index.js';
 import {
   LifeStage, LoanType, VEHICLE_REGISTRY, annualRentIncome,
 } from '@lifeverse/shared';
@@ -35,8 +35,9 @@ export const FinanceService = {
       .reduce((sum, p) => sum + p.monthlyUpkeep * 12, 0);
     const housing = rent + upkeep;
 
-    // Vehicle upkeep from owned vehicles.
-    let vehicle = 0;
+    // Vehicle upkeep: garage maintenance + any legacy asset-based vehicles.
+    let vehicle = VehicleModel.findByCharacterId(characterId)
+      .reduce((s, v) => s + v.monthlyMaintenance * 12, 0);
     for (const a of AssetsModel.findByCharacterId(characterId)) {
       if (vehicleValueOf(a.assetType)) {
         vehicle += VEHICLE_REGISTRY.get(a.assetType as VehicleType)?.annualExpense ?? 0;
@@ -133,7 +134,8 @@ export const FinanceService = {
     // Property value is the whole owned portfolio (residence + investments).
     const propertyValue = this.portfolioValue(characterId);
     const rentalIncome = this.rentalIncome(characterId);
-    let vehicleValue = 0;
+    let vehicleValue = VehicleModel.findByCharacterId(characterId)
+      .reduce((s, v) => s + v.currentValue, 0);
     for (const a of AssetsModel.findByCharacterId(characterId)) {
       if (vehicleValueOf(a.assetType)) vehicleValue += a.value;
     }

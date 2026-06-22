@@ -14,7 +14,9 @@ dist/
 *.db
 *.db-shm
 *.db-wal
-data/
+# The server's runtime DB directory only — NOT source folders named "data"
+# (e.g. packages/shared/src/data, which holds the game catalogs).
+/packages/server/data/
 
 # Logs
 logs/
@@ -33,3 +35,7 @@ Thumbs.db
 
 # Test / coverage
 coverage/
+
+# Local tooling binaries (e.g. cloudflared tunnel for sharing test builds)
+tools/
+*.exe

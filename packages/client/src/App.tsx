@@ -323,7 +323,6 @@ export function App(): JSX.Element {
           availableActivities={availableActivities}
           job={game.fullData.job ?? null}
           eligibleJobs={game.fullData.eligibleJobs ?? []}
-          ownedAssets={game.fullData.ownedAssets ?? []}
           phase={game.phase as 'playing' | 'events' | 'outcome'}
           pendingEvents={game.pendingEvents}
           currentEventIndex={game.currentEventIndex}
@@ -347,7 +346,12 @@ export function App(): JSX.Element {
           onStudy={game.study}
           onAttendClass={game.attendClass}
           onTakeExam={game.takeExam}
-          onBuyVehicle={game.buyVehicle}
+          onBuyCar={game.buyCar}
+          onSellVehicle={game.sellVehicle}
+          onSetPrimaryVehicle={game.setPrimaryVehicle}
+          onServiceVehicle={game.serviceVehicle}
+          onRepairVehicle={game.repairVehicle}
+          onWashVehicle={game.washVehicle}
           onRentProperty={game.rentProperty}
           onBuyHome={game.buyHome}
           onSellProperty={game.sellProperty}

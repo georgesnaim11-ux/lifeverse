@@ -1,8 +1,7 @@
 import { useState, type CSSProperties } from 'react';
 import { BottomSheet } from './BottomSheet';
 import { TIER_LABELS, annualRentIncome } from '@lifeverse/shared';
-import type { HousingState, Listing, Finance, OwnedAsset, OwnedProperty, PropertyTier } from '@lifeverse/shared';
-import { VEHICLES } from '@lifeverse/shared';
+import type { HousingState, Listing, Finance, OwnedProperty, PropertyTier } from '@lifeverse/shared';
 
 interface Props {
   isOpen: boolean;
@@ -11,7 +10,6 @@ interface Props {
   listings: Listing[];
   properties: OwnedProperty[];
   finance: Finance;
-  ownedAssets: OwnedAsset[];
   age: number;
   hasLivingParents: boolean;
   isLoading: boolean;
@@ -21,7 +19,6 @@ interface Props {
   onSetResidence: (propertyId: string) => void;
   onToggleRentOut: (propertyId: string) => void;
   onMoveInParents: () => void;
-  onBuyVehicle: (type: string) => void;
 }
 
 function fmt(n: number): string {
@@ -36,16 +33,15 @@ const TENURE_LABEL: Record<string, string> = {
 
 const TIER_ORDER: PropertyTier[] = ['entry', 'mid', 'family', 'luxury', 'ultra'];
 
-type Tab = 'buy' | 'rent' | 'portfolio' | 'vehicles';
+type Tab = 'buy' | 'rent' | 'portfolio';
 
 export function HousingSheet(props: Props): JSX.Element {
-  const { isOpen, onClose, housing, listings, properties, finance, ownedAssets, age, hasLivingParents,
-    isLoading, onRent, onBuy, onSellProperty, onSetResidence, onToggleRentOut, onMoveInParents, onBuyVehicle } = props;
+  const { isOpen, onClose, housing, listings, properties, finance, age, hasLivingParents,
+    isLoading, onRent, onBuy, onSellProperty, onSetResidence, onToggleRentOut, onMoveInParents } = props;
   const [tab, setTab] = useState<Tab>('buy');
   const [buyMode, setBuyMode] = useState<'moveIn' | 'invest'>('moveIn');
 
   const minor = age < 18;
-  const ownedVehicles = new Set(ownedAssets.map((a) => a.assetType));
   const portfolioCount = properties.length;
 
   return (
@@ -99,7 +95,7 @@ export function HousingSheet(props: Props): JSX.Element {
         <>
           {/* Tabs */}
           <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
-            {(['buy', 'rent', 'portfolio', 'vehicles'] as const).map((t) => (
+            {(['buy', 'rent', 'portfolio'] as const).map((t) => (
               <button key={t} onClick={() => setTab(t)}
                 style={{
                   flex: 1, padding: '8px 0', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer',
@@ -107,7 +103,7 @@ export function HousingSheet(props: Props): JSX.Element {
                   background: tab === t ? 'var(--accent-glow)' : 'var(--card)',
                   color: tab === t ? 'var(--accent)' : 'var(--text-dim)',
                 }}>
-                {t === 'buy' ? '🏠 Buy' : t === 'rent' ? '🔑 Rent' : t === 'portfolio' ? `📊 Portfolio${portfolioCount ? ` (${portfolioCount})` : ''}` : '🚗'}
+                {t === 'buy' ? '🏠 Buy' : t === 'rent' ? '🔑 Rent' : `📊 Portfolio${portfolioCount ? ` (${portfolioCount})` : ''}`}
               </button>
             ))}
           </div>
@@ -217,31 +213,6 @@ export function HousingSheet(props: Props): JSX.Element {
             )
           )}
 
-          {tab === 'vehicles' && (
-            <>
-              <div className="lv-cat-header"><span>🚗</span><span>Vehicles</span></div>
-              {VEHICLES.map((v) => {
-                const owned = ownedVehicles.has(v.type);
-                const tooPoor = finance.cash < v.price;
-                const disabled = owned || tooPoor || isLoading;
-                return (
-                  <div key={v.type} className={`lv-activity-row${disabled ? ' disabled' : ''}`}
-                    onClick={disabled ? undefined : () => onBuyVehicle(v.type)}>
-                    <div className="lv-activity-info">
-                      <div className="lv-activity-name">{v.label}</div>
-                      <div className="lv-activity-desc" style={{ whiteSpace: 'normal' }}>{v.description} · +{v.happiness} happiness</div>
-                    </div>
-                    <div className="lv-activity-cost">
-                      <span className="lv-cost-pill money">{fmt(v.price)}</span>
-                      {owned ? <span style={{ fontSize: 10, color: 'var(--success)' }}>Owned ✓</span>
-                        : tooPoor ? <span style={{ fontSize: 10, color: 'var(--danger)' }}>Too pricey</span>
-                        : <span style={{ fontSize: 10, color: 'var(--success)' }}>Buy ›</span>}
-                    </div>
-                  </div>
-                );
-              })}
-            </>
-          )}
         </>
       )}
       <div style={{ height: 12 }} />

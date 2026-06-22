@@ -8,6 +8,7 @@ import { educationRouter } from './education.routes.js';
 import { shoppingRouter } from './shopping.routes.js';
 import { relationshipRouter } from './relationship.routes.js';
 import { housingRouter } from './housing.routes.js';
+import { garageRouter } from './garage.routes.js';
 
 export const router = Router();
 
@@ -20,3 +21,4 @@ router.use('/education', educationRouter);
 router.use('/shop', shoppingRouter);
 router.use('/relationship', relationshipRouter);
 router.use('/housing', housingRouter);
+router.use('/garage', garageRouter);
