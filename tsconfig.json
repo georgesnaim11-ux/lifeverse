@@ -1,0 +1,9 @@
+{
+  // Solution file for `tsc -b`. Only composite (emitting) projects belong here.
+  // The client is type-checked/built by Vite, so it is excluded on purpose.
+  "files": [],
+  "references": [
+    { "path": "packages/shared" },
+    { "path": "packages/server" }
+  ]
+}

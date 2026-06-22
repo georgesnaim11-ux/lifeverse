@@ -1,0 +1,4 @@
+# models/ — repository pattern, one module per table (Milestone 2+)
+#
+# Each model owns its SQL and maps DB rows <-> @lifeverse/shared types.
+# Nothing above this layer writes raw SQL.

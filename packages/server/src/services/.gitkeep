@@ -1,0 +1,4 @@
+# services/ — orchestration (Milestone 2+)
+#
+# ageUpService, eventEngine, characterService, etc. Services compose engine +
+# models inside transactions. They contain game flow, not HTTP concerns.

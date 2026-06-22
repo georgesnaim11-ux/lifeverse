@@ -1,0 +1,8 @@
+# engine/ — pure systemic logic (Milestone 2+)
+#
+# Phase 1: focusSystem, traitSystem, statService helpers.
+# Phase 2: threadEngine, npcGenerator.
+# Phase 4: economyEngine.
+#
+# Layer rule: engine modules are pure (no HTTP, no req/res). They take state in
+# and return state out, so they are unit-testable in isolation.

@@ -1,0 +1,5 @@
+# events/ — authored event data + registry (Milestone 2+)
+#
+# Event definitions grouped by life stage (childhood.ts, adolescence.ts, ...),
+# plus threads/ and rare/ subfolders for later phases. The eventRegistry
+# aggregates them. Events are DATA conforming to @lifeverse/shared GameEvent.

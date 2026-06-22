@@ -1,0 +1,4 @@
+# routes/ — Express HTTP boundary (Milestone 2+)
+#
+# Thin: validate input (Zod), call a service, serialize the API DTOs from
+# @lifeverse/shared. No game logic lives here.
