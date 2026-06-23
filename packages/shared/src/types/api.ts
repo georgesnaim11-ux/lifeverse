@@ -11,6 +11,7 @@ import type { OwnedAsset } from './shop.js';
 import type { Loan, ExpenseBreakdown, FinanceSummary, LifeSummary, TimelineEntry } from './finance.js';
 import type { HousingState, Listing, OwnedProperty } from './housing.js';
 import type { OwnedVehicle, VehicleListing } from './vehicles.js';
+import type { OwnedCollectible } from './collectibles.js';
 import type { EducationRequirement, Major, PropertyType, VehicleType, WeddingTier } from './enums.js';
 
 /**
@@ -85,6 +86,8 @@ export interface GetCharacterResponse {
   garage: OwnedVehicle[];
   /** Vehicles available to buy at the dealership. */
   dealership: VehicleListing[];
+  /** Luxury collectibles the character owns (watches, jewelry, art, boats, aircraft). */
+  collectibles: OwnedCollectible[];
 }
 
 /** POST /api/game/age-up */

@@ -1,4 +1,4 @@
-import { FinanceModel, AssetsModel, LoanModel, HousingModel, PropertyModel, VehicleModel } from '../models/index.js';
+import { FinanceModel, AssetsModel, LoanModel, HousingModel, PropertyModel, VehicleModel, CollectibleModel } from '../models/index.js';
 import {
   LifeStage, LoanType, VEHICLE_REGISTRY, annualRentIncome,
 } from '@lifeverse/shared';
@@ -43,6 +43,9 @@ export const FinanceService = {
         vehicle += VEHICLE_REGISTRY.get(a.assetType as VehicleType)?.annualExpense ?? 0;
       }
     }
+    // Boats & aircraft upkeep is folded into the vehicle/toys line.
+    vehicle += CollectibleModel.findByCharacterId(characterId)
+      .reduce((s, i) => s + i.monthlyMaintenance * 12, 0);
 
     const education = (flags['inUniversity'] || flags['inHigherEd']) ? 3000 : 0;
     let family = 0;
@@ -139,7 +142,9 @@ export const FinanceService = {
     for (const a of AssetsModel.findByCharacterId(characterId)) {
       if (vehicleValueOf(a.assetType)) vehicleValue += a.value;
     }
-    const totalAssets = cash + propertyValue + vehicleValue;
+    const collectiblesValue = CollectibleModel.findByCharacterId(characterId)
+      .reduce((s, i) => s + i.currentValue, 0);
+    const totalAssets = cash + propertyValue + vehicleValue + collectiblesValue;
 
     const studentDebt = LoanModel.totalByType(characterId, LoanType.Student);
     const mortgageDebt = LoanModel.totalByType(characterId, LoanType.Mortgage);
@@ -150,7 +155,7 @@ export const FinanceService = {
       cash, propertyValue, vehicleValue, totalAssets,
       studentDebt, mortgageDebt, personalDebt, totalLiabilities,
       netWorth: totalAssets - totalLiabilities,
-      annualIncome, rentalIncome, portfolioValue: propertyValue,
+      annualIncome, rentalIncome, portfolioValue: propertyValue, collectiblesValue,
     };
   },
 

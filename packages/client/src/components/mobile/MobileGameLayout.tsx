@@ -7,16 +7,16 @@ import { EducationSheet } from './EducationSheet';
 import { RelationshipsSheet } from './RelationshipsSheet';
 import { FinanceSheet } from './FinanceSheet';
 import { HousingSheet } from './HousingSheet';
-import { GarageSheet } from './GarageSheet';
+import { ShopSheet } from './ShopSheet';
 import { MAJORS, getCountry } from '@lifeverse/shared';
 import type {
   CharacterState, GetCharacterResponse, PresentedEvent,
   EarnedAchievement, DomainState, CharacterResources,
-  JobState, JobEligibility, HousingState, Listing, OwnedProperty, OwnedVehicle, VehicleListing,
+  JobState, JobEligibility, HousingState, Listing, OwnedProperty, OwnedVehicle, VehicleListing, OwnedCollectible,
 } from '@lifeverse/shared';
 import type { ActivityDefinition } from '@lifeverse/shared';
 
-type Sheet = 'none' | 'activity' | 'stats' | 'log' | 'career' | 'education' | 'shopping' | 'garage' | 'love' | 'finance';
+type Sheet = 'none' | 'activity' | 'stats' | 'log' | 'career' | 'education' | 'shopping' | 'shop' | 'love' | 'finance';
 type Phase = 'playing' | 'events' | 'outcome';
 
 interface Props {
@@ -56,6 +56,8 @@ interface Props {
   onServiceVehicle: (vehicleId: string) => void;
   onRepairVehicle: (vehicleId: string) => void;
   onWashVehicle: (vehicleId: string) => void;
+  onBuyCollectible: (category: string, itemKey: string, year: number, condition: string) => void;
+  onSellCollectible: (id: string) => void;
   onRentProperty: (key: string) => void;
   onBuyHome: (key: string, moveIn?: boolean) => void;
   onSellProperty: (propertyId: string) => void;
@@ -122,6 +124,7 @@ export function MobileGameLayout(props: Props): JSX.Element {
     onApplyJob, onPromote, onWorkHard, onQuitJob,
     onEnroll, onStudy, onAttendClass, onTakeExam,
     onBuyCar, onSellVehicle, onSetPrimaryVehicle, onServiceVehicle, onRepairVehicle, onWashVehicle,
+    onBuyCollectible, onSellCollectible,
     onRentProperty, onBuyHome, onSellProperty, onSetResidence, onToggleRentOut, onMoveInParents,
     onFindPartner, onGoOnDate, onPropose, onPlanWedding, onDelayWedding, onCancelEngagement, onBreakUp,
     onTryForBaby, onToggleBirthControl, onDivorce,
@@ -140,6 +143,7 @@ export function MobileGameLayout(props: Props): JSX.Element {
   const properties: OwnedProperty[] = fullData.properties ?? [];
   const garage: OwnedVehicle[] = fullData.garage ?? [];
   const dealership: VehicleListing[] = fullData.dealership ?? [];
+  const collectibles: OwnedCollectible[] = fullData.collectibles ?? [];
   const hasLivingParents = (fullData.relationships ?? []).some((r) => r.type === 'parent' && r.isAlive);
 
   // Auto-dismiss the action message toast
@@ -339,8 +343,8 @@ export function MobileGameLayout(props: Props): JSX.Element {
         <button className={`lv-nav-tab ${sheet === 'shopping' ? 'active' : ''}`} onClick={() => setSheet('shopping')}>
           <span className="lv-nav-tab-icon">🏠</span><span className="lv-nav-tab-label">Home</span>
         </button>
-        <button className={`lv-nav-tab ${sheet === 'garage' ? 'active' : ''}`} onClick={() => setSheet('garage')}>
-          <span className="lv-nav-tab-icon">🚗</span><span className="lv-nav-tab-label">Garage</span>
+        <button className={`lv-nav-tab ${sheet === 'shop' ? 'active' : ''}`} onClick={() => setSheet('shop')}>
+          <span className="lv-nav-tab-icon">🛍️</span><span className="lv-nav-tab-label">Shop</span>
         </button>
       </nav>
 
@@ -354,17 +358,19 @@ export function MobileGameLayout(props: Props): JSX.Element {
         finance={finance} age={character.age} hasLivingParents={hasLivingParents} isLoading={isLoading}
         onRent={onRentProperty} onBuy={onBuyHome} onSellProperty={onSellProperty} onSetResidence={onSetResidence}
         onToggleRentOut={onToggleRentOut} onMoveInParents={onMoveInParents} />
-      <GarageSheet isOpen={sheet === 'garage'} onClose={closeSheet} garage={garage} dealership={dealership}
-        finance={finance} age={character.age} isLoading={isLoading}
-        onBuy={onBuyCar} onSell={onSellVehicle} onSetPrimary={onSetPrimaryVehicle}
-        onService={onServiceVehicle} onRepair={onRepairVehicle} onWash={onWashVehicle} />
+      <ShopSheet isOpen={sheet === 'shop'} onClose={closeSheet} age={character.age} isLoading={isLoading} finance={finance}
+        dealership={dealership} garage={garage}
+        onBuyCar={onBuyCar} onSellVehicle={onSellVehicle} onSetPrimaryVehicle={onSetPrimaryVehicle}
+        onServiceVehicle={onServiceVehicle} onRepairVehicle={onRepairVehicle} onWashVehicle={onWashVehicle}
+        listings={listings} properties={properties} onBuyHome={onBuyHome} onSellProperty={onSellProperty}
+        collectibles={collectibles} onBuyCollectible={onBuyCollectible} onSellCollectible={onSellCollectible} />
       <RelationshipsSheet isOpen={sheet === 'love'} onClose={closeSheet} relationships={fullData.relationships ?? []} flags={flags}
         age={character.age} cash={finance.cash} isLoading={isLoading}
         onFindPartner={onFindPartner} onDate={onGoOnDate} onPropose={onPropose} onPlanWedding={onPlanWedding}
         onDelayWedding={onDelayWedding} onCancelEngagement={onCancelEngagement} onBreakUp={onBreakUp}
         onTryForBaby={onTryForBaby} onToggleBirthControl={onToggleBirthControl} onDivorce={onDivorce} />
       <FinanceSheet isOpen={sheet === 'finance'} onClose={closeSheet} finance={finance}
-        summary={summary ?? { cash: finance.cash, propertyValue: 0, vehicleValue: 0, totalAssets: finance.cash, studentDebt: 0, mortgageDebt: 0, personalDebt: 0, totalLiabilities: finance.totalDebt, netWorth, annualIncome: finance.annualIncome, rentalIncome: 0, portfolioValue: 0 }}
+        summary={summary ?? { cash: finance.cash, propertyValue: 0, vehicleValue: 0, totalAssets: finance.cash, studentDebt: 0, mortgageDebt: 0, personalDebt: 0, totalLiabilities: finance.totalDebt, netWorth, annualIncome: finance.annualIncome, rentalIncome: 0, portfolioValue: 0, collectiblesValue: 0 }}
         expenses={fullData.expenses ?? { housing: 0, vehicle: 0, education: 0, family: 0, lifestyle: 0, loanPayments: 0, total: finance.annualExpenses }}
         loans={fullData.loans ?? []} />
 

@@ -44,6 +44,8 @@ export interface FinanceSummary {
   rentalIncome: number;
   /** Combined current value of every owned property (residence + investments). */
   portfolioValue: number;
+  /** Combined value of luxury collectibles (watches, jewelry, art, boats, aircraft). */
+  collectiblesValue: number;
 }
 
 /** A single dated moment in a character's life story. */

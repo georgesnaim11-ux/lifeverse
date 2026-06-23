@@ -382,6 +382,8 @@ export function App(): JSX.Element {
           onServiceVehicle={game.serviceVehicle}
           onRepairVehicle={game.repairVehicle}
           onWashVehicle={game.washVehicle}
+          onBuyCollectible={game.buyCollectible}
+          onSellCollectible={game.sellCollectible}
           onRentProperty={game.rentProperty}
           onBuyHome={game.buyHome}
           onSellProperty={game.sellProperty}

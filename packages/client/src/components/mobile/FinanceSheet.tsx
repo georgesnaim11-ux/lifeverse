@@ -52,7 +52,8 @@ export function FinanceSheet({ isOpen, onClose, summary, expenses, loans }: Prop
       <div className="lv-cat-header"><span>📈</span><span>Assets</span></div>
       <Row label="Cash" value={summary.cash} positive />
       <Row label="Real Estate" value={summary.portfolioValue} positive />
-      <Row label="Vehicle Value" value={summary.vehicleValue} positive />
+      <Row label="Vehicles" value={summary.vehicleValue} positive />
+      <Row label="Collectibles" value={summary.collectiblesValue} positive />
       <Row label="Total Assets" value={summary.totalAssets} bold positive />
 
       <div className="lv-cat-header" style={{ marginTop: 14 }}><span>📉</span><span>Liabilities</span></div>

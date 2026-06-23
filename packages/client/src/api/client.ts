@@ -111,6 +111,12 @@ export const api = {
   washVehicle: (characterId: string, vehicleId: string) =>
     post<{ characterId: string; vehicleId: string }, { message: string }>('/garage/wash', { characterId, vehicleId }),
 
+  // Collectibles (watches, jewelry, art, boats, aircraft)
+  buyCollectible: (characterId: string, category: string, itemKey: string, year: number, condition: string) =>
+    post<{ characterId: string; category: string; itemKey: string; year: number; condition: string }, { message: string }>('/collectibles/buy', { characterId, category, itemKey, year, condition }),
+  sellCollectible: (characterId: string, collectibleId: string) =>
+    post<{ characterId: string; collectibleId: string }, { message: string }>('/collectibles/sell', { characterId, collectibleId }),
+
   // Relationships / love
   findPartner: (characterId: string) =>
     post<{ characterId: string }, { message: string }>('/relationship/find-partner', { characterId }),

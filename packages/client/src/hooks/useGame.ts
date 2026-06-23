@@ -248,6 +248,8 @@ export function useGame() {
   const serviceVehicle     = useCallback((vehicleId: string) => runAction((id) => api.serviceVehicle(id, vehicleId)), [runAction]);
   const repairVehicle      = useCallback((vehicleId: string) => runAction((id) => api.repairVehicle(id, vehicleId)), [runAction]);
   const washVehicle        = useCallback((vehicleId: string) => runAction((id) => api.washVehicle(id, vehicleId)), [runAction]);
+  const buyCollectible     = useCallback((category: string, itemKey: string, year: number, condition: string) => runAction((id) => api.buyCollectible(id, category, itemKey, year, condition)), [runAction]);
+  const sellCollectible    = useCallback((collectibleId: string) => runAction((id) => api.sellCollectible(id, collectibleId)), [runAction]);
   const tryForBaby         = useCallback(() => runAction(api.tryForBaby), [runAction]);
   const toggleBirthControl = useCallback(() => runAction(api.toggleBirthControl), [runAction]);
   const divorce            = useCallback(() => runAction(api.divorce), [runAction]);
@@ -314,6 +316,8 @@ export function useGame() {
     serviceVehicle,
     repairVehicle,
     washVehicle,
+    buyCollectible,
+    sellCollectible,
     clearMessage,
     continueAfterOutcome,
     dismissAchievements,

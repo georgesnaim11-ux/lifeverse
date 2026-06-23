@@ -6,6 +6,7 @@ import { JobService } from '../services/job.service.js';
 import { FinanceService } from '../services/finance.service.js';
 import { HousingService } from '../services/housing.service.js';
 import { GarageService } from '../services/garage.service.js';
+import { ShopService } from '../services/shop.service.js';
 import { LoanModel } from '../models/index.js';
 import {
   RelationshipsModel,
@@ -84,6 +85,7 @@ characterRouter.get('/:id', (req, res, next) => {
     const properties = HousingService.getProperties(id);
     const garage = GarageService.getGarage(id);
     const dealership = GarageService.getDealership(id);
+    const collectibles = ShopService.getCollection(id);
 
     // Legacy focus fields — computed from resources for backwards compat
     const focus = {
@@ -98,7 +100,7 @@ characterRouter.get('/:id', (req, res, next) => {
         domains, resources, availableActivities,
         job, eligibleJobs, ownedAssets, flags,
         loans, expenses, financeSummary, timeline,
-        housing, listings, properties, garage, dealership,
+        housing, listings, properties, garage, dealership, collectibles,
         focus, availableFocusActions: [],
       },
     });
