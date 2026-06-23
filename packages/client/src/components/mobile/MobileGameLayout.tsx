@@ -215,9 +215,9 @@ export function MobileGameLayout(props: Props): JSX.Element {
           disabled={isLoading}
           aria-label="Age up one year"
           style={{
-            width: 150, height: 150, borderRadius: '50%', border: 'none', flexShrink: 0,
-            background: 'linear-gradient(145deg, var(--accent), var(--accent-2))',
-            color: '#fff', boxShadow: '0 8px 28px var(--accent-glow)',
+            width: 150, height: 150, borderRadius: '50%', border: '3px solid var(--accent)', flexShrink: 0,
+            background: '#fff',
+            color: '#111', boxShadow: '0 8px 28px rgba(0,0,0,0.22)',
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             gap: 2, cursor: isLoading ? 'default' : 'pointer', opacity: isLoading ? 0.6 : 1,
             transition: 'transform 0.1s',
@@ -225,9 +225,9 @@ export function MobileGameLayout(props: Props): JSX.Element {
           onMouseDown={(e) => { e.currentTarget.style.transform = 'scale(0.96)'; }}
           onMouseUp={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
         >
-          <span style={{ fontSize: 34 }}>⏩</span>
-          <span style={{ fontSize: 15, fontWeight: 900, letterSpacing: '0.04em' }}>AGE UP</span>
-          <span style={{ fontSize: 10, opacity: 0.85 }}>{isLoading ? '…' : '+1 year'}</span>
+          <span style={{ fontSize: 56, fontWeight: 900, lineHeight: 0.7, color: 'var(--accent)' }}>+</span>
+          <span style={{ fontSize: 15, fontWeight: 900, letterSpacing: '0.04em', color: '#111' }}>AGE UP</span>
+          <span style={{ fontSize: 10, opacity: 0.7, color: '#111' }}>{isLoading ? '…' : '+1 year'}</span>
         </button>
 
         {/* Mood + stage line */}

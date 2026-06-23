@@ -65,8 +65,12 @@ export const CharacterService = {
     const countryData = getCountry(countryId)!;
     const gender = input.gender ?? (Math.random() < 0.5 ? Gender.Male : Gender.Female);
 
-    // Surname comes from the country so the family shares a culturally-matched name.
-    const surname = randomSurname(countryId);
+    // Use the player's chosen last name when given; otherwise generate a
+    // culturally-matched surname from the country so the family shares it.
+    const chosenLast = input.lastName?.trim();
+    const surname = chosenLast && chosenLast.length > 0
+      ? chosenLast.slice(0, GAME_CONSTANTS.creation.nameMaxLength)
+      : randomSurname(countryId);
     const name = `${firstName} ${surname}`;
 
     // Starting cash band is country-dependent.

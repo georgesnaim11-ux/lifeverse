@@ -27,6 +27,7 @@ export const characterRouter = Router();
 
 const CreateSchema = z.object({
   name: z.string().min(2).max(40),
+  lastName: z.string().max(40).optional(),
   country: z.string().min(1).optional(),
   gender: z.nativeEnum(Gender).optional(),
   statAllocation: z.record(z.number().int().min(0).max(100)).optional(),
@@ -43,9 +44,10 @@ characterRouter.post('/', (req, res, next) => {
       res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: 'Invalid input.', details: parsed.error.flatten().fieldErrors } });
       return;
     }
-    const { name, country, gender, statAllocation } = parsed.data;
+    const { name, lastName, country, gender, statAllocation } = parsed.data;
     const state = CharacterService.create({
       name,
+      ...(lastName !== undefined ? { lastName } : {}),
       ...(country !== undefined ? { country } : {}),
       ...(gender !== undefined ? { gender } : {}),
       ...(statAllocation !== undefined ? { statAllocation } : {}),

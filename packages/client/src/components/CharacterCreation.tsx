@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { CharacterCreationInput } from '@lifeverse/shared';
-import { GAME_CONSTANTS, STAT_KEYS } from '@lifeverse/shared';
+import { GAME_CONSTANTS, STAT_KEYS, COUNTRIES, DEFAULT_COUNTRY_ID } from '@lifeverse/shared';
 
 interface Props {
   onCreate: (input: CharacterCreationInput) => void;
@@ -19,6 +19,8 @@ const MAX_STAT = GAME_CONSTANTS.creation.maxStartingStat;
 
 export function CharacterCreation({ onCreate, isLoading, error }: Props): JSX.Element {
   const [name, setName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [country, setCountry] = useState<string>(DEFAULT_COUNTRY_ID);
   const [allocation, setAllocation] = useState<Record<string, number>>(
     Object.fromEntries(STAT_KEYS.map((k) => [k, BASELINE])),
   );
@@ -38,7 +40,12 @@ export function CharacterCreation({ onCreate, isLoading, error }: Props): JSX.El
   function handleSubmit(e: React.FormEvent): void {
     e.preventDefault();
     if (!name.trim()) return;
-    onCreate({ name: name.trim(), statAllocation: allocation });
+    onCreate({
+      name: name.trim(),
+      country,
+      statAllocation: allocation,
+      ...(lastName.trim() ? { lastName: lastName.trim() } : {}),
+    });
   }
 
   return (
@@ -47,16 +54,40 @@ export function CharacterCreation({ onCreate, isLoading, error }: Props): JSX.El
       <p className="creation-sub">Your story begins here. Choose wisely — some decisions echo for a lifetime.</p>
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label className="form-label" htmlFor="char-name">Your Name</label>
+          <label className="form-label" htmlFor="char-name">First Name</label>
           <input
             id="char-name"
             className="form-input"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Enter your name…"
+            placeholder="Enter your first name…"
             maxLength={40}
             required
           />
+        </div>
+        <div className="form-group">
+          <label className="form-label" htmlFor="char-last">Last Name</label>
+          <input
+            id="char-last"
+            className="form-input"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            placeholder="Optional — leave blank for a local family name"
+            maxLength={40}
+          />
+        </div>
+        <div className="form-group">
+          <label className="form-label" htmlFor="char-country">Country</label>
+          <select
+            id="char-country"
+            className="form-input"
+            value={country}
+            onChange={(e) => setCountry(e.target.value)}
+          >
+            {COUNTRIES.map((c) => (
+              <option key={c.id} value={c.id}>{c.flag} {c.label}</option>
+            ))}
+          </select>
         </div>
         <div className="form-group">
           <label className="form-label">Distribute Starting Stats</label>

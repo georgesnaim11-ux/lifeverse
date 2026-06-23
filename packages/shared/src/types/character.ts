@@ -47,8 +47,10 @@ export interface CharacterState {
  * Validation (name length, stat point budget) is enforced server-side.
  */
 export interface CharacterCreationInput {
-  /** Player's first name. The surname is generated from the country. */
+  /** Player's first name. */
   name: string;
+  /** Player's last name. If omitted, a surname is generated from the country. */
+  lastName?: string;
   /**
    * Optional player-allocated starting stat bias. The creation service applies
    * a fixed point budget; omitted stats default to the baseline.
