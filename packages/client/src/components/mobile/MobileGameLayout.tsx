@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ActivitySheet } from './ActivitySheet';
+import { ActivitiesSheet } from './ActivitiesSheet';
 import { StatsSheet } from './StatsSheet';
 import { LifeLogSheet } from './LifeLogSheet';
 import { CareerSheet } from './CareerSheet';
@@ -11,20 +11,17 @@ import { ShopSheet } from './ShopSheet';
 import { MAJORS, getCountry } from '@lifeverse/shared';
 import type {
   CharacterState, GetCharacterResponse, PresentedEvent,
-  EarnedAchievement, DomainState, CharacterResources,
+  EarnedAchievement, DomainState,
   JobState, JobEligibility, HousingState, Listing, OwnedProperty, OwnedVehicle, VehicleListing, OwnedCollectible,
 } from '@lifeverse/shared';
-import type { ActivityDefinition } from '@lifeverse/shared';
 
-type Sheet = 'none' | 'activity' | 'stats' | 'log' | 'career' | 'education' | 'shopping' | 'shop' | 'love' | 'finance';
+type Sheet = 'none' | 'activities' | 'stats' | 'log' | 'career' | 'education' | 'shopping' | 'shop' | 'love' | 'finance';
 type Phase = 'playing' | 'events' | 'outcome';
 
 interface Props {
   charState: CharacterState;
   fullData: GetCharacterResponse;
   domains: DomainState;
-  resources: CharacterResources;
-  availableActivities: ActivityDefinition[];
   job: JobState | null;
   eligibleJobs: JobEligibility[];
   phase: Phase;
@@ -37,6 +34,8 @@ interface Props {
   actionMessage: string | null;
   onAgeUp: () => void;
   onPerformActivity: (id: string) => void;
+  onVacation: (countryId: string, type: string, activityKey: string) => void;
+  onCasino: (game: string, bet: number) => void;
   onMakeChoice: (eventId: string, choiceId: string) => void;
   onContinueAfterOutcome: () => void;
   onDismissAchievements: () => void;
@@ -116,10 +115,10 @@ const ACHIEVEMENT_LABELS: Record<string, string> = {
 
 export function MobileGameLayout(props: Props): JSX.Element {
   const {
-    charState, fullData, domains, resources, availableActivities,
+    charState, fullData, domains,
     job, eligibleJobs, phase, pendingEvents, currentEventIndex,
     lastOutcome, newAchievements, isLoading, error, actionMessage,
-    onAgeUp, onPerformActivity, onMakeChoice, onContinueAfterOutcome,
+    onAgeUp, onPerformActivity, onVacation, onCasino, onMakeChoice, onContinueAfterOutcome,
     onDismissAchievements, onClearMessage, onSave,
     onApplyJob, onPromote, onWorkHard, onQuitJob,
     onEnroll, onStudy, onAttendClass, onTakeExam,
@@ -265,11 +264,6 @@ export function MobileGameLayout(props: Props): JSX.Element {
           <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>Tap for details ›</div>
         </div>
 
-        {resources.burnoutState && (
-          <div style={{ width: '100%', padding: '10px 14px', background: 'rgba(240,92,92,0.12)', border: '1px solid var(--danger)', borderRadius: 12, fontSize: 13, color: 'var(--danger)', fontWeight: 600 }}>
-            ⚠ Burnout — rest to recover
-          </div>
-        )}
 
         {housing.tenure === 'homeless' && (
           <div onClick={() => setSheet('shopping')} style={{ width: '100%', padding: '10px 14px', background: 'rgba(220,63,72,0.12)', border: '1px solid var(--danger)', borderRadius: 12, fontSize: 13, color: 'var(--danger)', fontWeight: 600, cursor: 'pointer' }}>
@@ -328,8 +322,8 @@ export function MobileGameLayout(props: Props): JSX.Element {
 
       {/* Bottom nav: Life | Education | Career | Love | Shopping */}
       <nav className="lv-bottom-nav">
-        <button className={`lv-nav-tab ${sheet === 'none' ? 'active' : ''}`} onClick={() => setSheet('none')}>
-          <span className="lv-nav-tab-icon">📖</span><span className="lv-nav-tab-label">Life</span>
+        <button className={`lv-nav-tab ${sheet === 'activities' ? 'active' : ''}`} onClick={() => setSheet('activities')}>
+          <span className="lv-nav-tab-icon">🎯</span><span className="lv-nav-tab-label">Activities</span>
         </button>
         <button className={`lv-nav-tab ${sheet === 'education' ? 'active' : ''}`} onClick={() => setSheet('education')}>
           <span className="lv-nav-tab-icon">🎓</span><span className="lv-nav-tab-label">Edu</span>
@@ -349,7 +343,8 @@ export function MobileGameLayout(props: Props): JSX.Element {
       </nav>
 
       {/* Sheets */}
-      <ActivitySheet isOpen={sheet === 'activity'} onClose={closeSheet} activities={availableActivities} resources={resources} onPerform={onPerformActivity} isLoading={isLoading} />
+      <ActivitiesSheet isOpen={sheet === 'activities'} onClose={closeSheet} age={character.age} cash={finance.cash} isLoading={isLoading}
+        onPerform={onPerformActivity} onVacation={onVacation} onCasino={onCasino} />
       <StatsSheet isOpen={sheet === 'stats'} onClose={closeSheet} stats={stats} domains={domains} />
       <LifeLogSheet isOpen={sheet === 'log'} onClose={closeSheet} entries={fullData.eventLog} />
       <CareerSheet isOpen={sheet === 'career'} onClose={closeSheet} job={job} eligibleJobs={eligibleJobs} isLoading={isLoading} onApply={onApplyJob} onPromote={onPromote} onWorkHard={onWorkHard} onQuit={onQuitJob} />
@@ -373,24 +368,6 @@ export function MobileGameLayout(props: Props): JSX.Element {
         summary={summary ?? { cash: finance.cash, propertyValue: 0, vehicleValue: 0, totalAssets: finance.cash, studentDebt: 0, mortgageDebt: 0, personalDebt: 0, totalLiabilities: finance.totalDebt, netWorth, annualIncome: finance.annualIncome, rentalIncome: 0, portfolioValue: 0, collectiblesValue: 0 }}
         expenses={fullData.expenses ?? { housing: 0, vehicle: 0, education: 0, family: 0, lifestyle: 0, loanPayments: 0, total: finance.annualExpenses }}
         loans={fullData.loans ?? []} />
-
-      {/* Activities quick-action button (floating, bottom-left) */}
-      {phase !== 'events' && (
-        <button
-          onClick={() => setSheet('activity')}
-          style={{
-            position: 'fixed', bottom: 'calc(var(--bottom-nav-h) + var(--safe-bottom) + 14px)',
-            left: 16, zIndex: 30,
-            width: 60, height: 60, borderRadius: '50%', border: '1px solid var(--border)',
-            background: 'var(--card)', color: 'var(--text)',
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
-          }}
-        >
-          <span style={{ fontSize: 18 }}>🎯</span>
-          <span style={{ fontSize: 8, fontWeight: 800, letterSpacing: '0.05em' }}>ACTS</span>
-        </button>
-      )}
 
       {/* Action message toast */}
       {actionMessage && (

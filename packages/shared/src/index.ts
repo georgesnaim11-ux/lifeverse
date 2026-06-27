@@ -39,3 +39,4 @@ export * from './data/countries.js';
 export * from './data/realestate.js';
 export * from './data/vehicles.js';
 export * from './data/collectibles.js';
+export * from './data/activities.js';

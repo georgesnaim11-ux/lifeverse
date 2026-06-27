@@ -13,11 +13,6 @@ const BLANK_DOMAINS = {
   socialNeglect: 0, creativeNeglect: 0, mentalNeglect: 0, updatedAt: '',
 };
 
-const BLANK_RESOURCES = {
-  characterId: '', totalTimeSlots: 3, usedTimeSlots: 0,
-  mentalEnergy: 80, physicalEnergy: 80, mentalEnergyMax: 100, physicalEnergyMax: 100,
-  consecutiveLowMentalYears: 0, burnoutState: false, updatedAt: '',
-};
 
 const BASELINE = GAME_CONSTANTS.stat.baseline;
 const BUDGET   = GAME_CONSTANTS.creation.pointBudget;
@@ -305,8 +300,6 @@ export function App(): JSX.Element {
   const game = useGame();
 
   const domains = game.fullData?.domains ?? BLANK_DOMAINS;
-  const resources = game.fullData?.resources ?? BLANK_RESOURCES;
-  const availableActivities = game.fullData?.availableActivities ?? [];
 
   function handleSave(): void {
     if (!game.charState) return;
@@ -349,8 +342,6 @@ export function App(): JSX.Element {
           charState={game.charState}
           fullData={game.fullData}
           domains={domains}
-          resources={resources}
-          availableActivities={availableActivities}
           job={game.fullData.job ?? null}
           eligibleJobs={game.fullData.eligibleJobs ?? []}
           phase={game.phase as 'playing' | 'events' | 'outcome'}
@@ -363,6 +354,8 @@ export function App(): JSX.Element {
           actionMessage={game.actionMessage}
           onAgeUp={game.ageUp}
           onPerformActivity={game.performActivity}
+          onVacation={game.takeVacation}
+          onCasino={game.casinoBet}
           onMakeChoice={game.makeChoice}
           onContinueAfterOutcome={game.continueAfterOutcome}
           onDismissAchievements={game.dismissAchievements}

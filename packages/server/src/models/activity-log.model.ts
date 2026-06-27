@@ -38,6 +38,14 @@ export const ActivityLogModel = {
       );
   },
 
+  /** How many times an activity was already performed this year (for diminishing returns). */
+  countThisYear(characterId: string, activityId: string, age: number): number {
+    const row = getDb()
+      .prepare('SELECT COUNT(*) as n FROM activity_log WHERE character_id = ? AND activity_id = ? AND age = ?')
+      .get(characterId, activityId, age) as { n: number };
+    return row.n;
+  },
+
   findByCharacterId(characterId: string): PerformedActivity[] {
     const rows = getDb()
       .prepare('SELECT * FROM activity_log WHERE character_id = ? ORDER BY performed_at DESC')

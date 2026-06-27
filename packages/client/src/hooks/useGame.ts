@@ -190,9 +190,9 @@ export function useGame() {
     if (!state.charState) return;
     setLoading(true);
     try {
-      await api.performActivity({ characterId: state.charState.character.id, activityId });
+      const { message } = await api.performActivity(state.charState.character.id, activityId);
       const fullData = await api.getCharacter(state.charState.character.id);
-      setState((s) => ({ ...s, charState: { ...s.charState!, stats: fullData.state.stats }, fullData, isLoading: false, error: null }));
+      setState((s) => ({ ...s, charState: { ...s.charState!, stats: fullData.state.stats, character: fullData.state.character }, fullData, isLoading: false, error: null, actionMessage: message }));
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to perform activity');
     }
@@ -250,6 +250,8 @@ export function useGame() {
   const washVehicle        = useCallback((vehicleId: string) => runAction((id) => api.washVehicle(id, vehicleId)), [runAction]);
   const buyCollectible     = useCallback((category: string, itemKey: string, year: number, condition: string) => runAction((id) => api.buyCollectible(id, category, itemKey, year, condition)), [runAction]);
   const sellCollectible    = useCallback((collectibleId: string) => runAction((id) => api.sellCollectible(id, collectibleId)), [runAction]);
+  const takeVacation       = useCallback((countryId: string, type: string, activityKey: string) => runAction((id) => api.takeVacation(id, countryId, type, activityKey)), [runAction]);
+  const casinoBet          = useCallback((game: string, bet: number) => runAction((id) => api.casinoBet(id, game, bet)), [runAction]);
   const tryForBaby         = useCallback(() => runAction(api.tryForBaby), [runAction]);
   const toggleBirthControl = useCallback(() => runAction(api.toggleBirthControl), [runAction]);
   const divorce            = useCallback(() => runAction(api.divorce), [runAction]);
@@ -318,6 +320,8 @@ export function useGame() {
     washVehicle,
     buyCollectible,
     sellCollectible,
+    takeVacation,
+    casinoBet,
     clearMessage,
     continueAfterOutcome,
     dismissAchievements,

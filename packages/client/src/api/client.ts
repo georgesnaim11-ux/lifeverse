@@ -8,8 +8,6 @@ import type {
   ChooseResponse,
   FocusActionRequest,
   FocusActionResponse,
-  PerformActivityRequest,
-  PerformActivityResponse,
   CreateSaveRequest,
   CreateSaveResponse,
 } from '@lifeverse/shared';
@@ -54,8 +52,12 @@ export const api = {
   focusAction: (body: FocusActionRequest) =>
     post<FocusActionRequest, FocusActionResponse>('/game/focus-action', body),
 
-  performActivity: (body: PerformActivityRequest) =>
-    post<PerformActivityRequest, PerformActivityResponse>('/activity/perform', body),
+  performActivity: (characterId: string, activityId: string) =>
+    post<{ characterId: string; activityId: string }, { message: string }>('/activity/perform', { characterId, activityId }),
+  takeVacation: (characterId: string, countryId: string, type: string, activityKey: string) =>
+    post<{ characterId: string; countryId: string; type: string; activityKey: string }, { message: string }>('/activity/vacation', { characterId, countryId, type, activityKey }),
+  casinoBet: (characterId: string, game: string, bet: number) =>
+    post<{ characterId: string; game: string; bet: number }, { message: string }>('/activity/casino', { characterId, game, bet }),
 
   // Careers
   applyJob: (characterId: string, jobId: string) =>

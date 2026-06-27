@@ -1,40 +1,43 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { ActivityService } from '../services/activity.service.js';
-import { DomainsModel } from '../models/domains.model.js';
-import { ResourcesModel } from '../models/resources.model.js';
+import { ActivitiesService } from '../services/activities.service.js';
 
 export const activityRouter = Router();
 
-const PerformSchema = z.object({
+function bad(res: import('express').Response): void {
+  res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: 'Invalid input.' } });
+}
+
+const PerformSchema = z.object({ characterId: z.string().uuid(), activityId: z.string().min(1) });
+const VacationSchema = z.object({
   characterId: z.string().uuid(),
-  activityId: z.string().min(1),
+  countryId: z.string().min(1),
+  type: z.string().min(1),
+  activityKey: z.string().min(1),
+});
+const CasinoSchema = z.object({
+  characterId: z.string().uuid(),
+  game: z.string().min(1),
+  bet: z.number().int().positive().max(1_000_000_000),
 });
 
-/** GET /api/activity/:characterId — list available activities */
-activityRouter.get('/:characterId', (req, res, next) => {
+activityRouter.post('/perform', (req, res, next) => {
   try {
-    const { characterId } = req.params;
-    if (!characterId) {
-      res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'Missing characterId' } });
-      return;
-    }
-    const activities = ActivityService.getAvailableActivities(characterId);
-    const domains = DomainsModel.ensureExists(characterId);
-    const resources = ResourcesModel.ensureExists(characterId, 3);
-    res.json({ data: { activities, domains, resources } });
+    const p = PerformSchema.safeParse(req.body); if (!p.success) return bad(res);
+    res.json({ data: ActivitiesService.perform(p.data.characterId, p.data.activityId) });
   } catch (err) { next(err); }
 });
 
-/** POST /api/activity/perform — perform an activity */
-activityRouter.post('/perform', (req, res, next) => {
+activityRouter.post('/vacation', (req, res, next) => {
   try {
-    const parsed = PerformSchema.safeParse(req.body);
-    if (!parsed.success) {
-      res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: 'Invalid input.', details: parsed.error.flatten().fieldErrors } });
-      return;
-    }
-    const result = ActivityService.perform(parsed.data.characterId, parsed.data.activityId);
-    res.json({ data: result });
+    const p = VacationSchema.safeParse(req.body); if (!p.success) return bad(res);
+    res.json({ data: ActivitiesService.vacation(p.data.characterId, p.data.countryId, p.data.type, p.data.activityKey) });
+  } catch (err) { next(err); }
+});
+
+activityRouter.post('/casino', (req, res, next) => {
+  try {
+    const p = CasinoSchema.safeParse(req.body); if (!p.success) return bad(res);
+    res.json({ data: ActivitiesService.casino(p.data.characterId, p.data.game, p.data.bet) });
   } catch (err) { next(err); }
 });

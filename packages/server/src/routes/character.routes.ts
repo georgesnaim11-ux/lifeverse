@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { CharacterService } from '../services/character.service.js';
-import { ActivityService } from '../services/activity.service.js';
 import { JobService } from '../services/job.service.js';
 import { FinanceService } from '../services/finance.service.js';
 import { HousingService } from '../services/housing.service.js';
@@ -20,7 +19,6 @@ import {
   FlagsModel,
 } from '../models/index.js';
 import { DomainsModel } from '../models/domains.model.js';
-import { ResourcesModel } from '../models/resources.model.js';
 import { Gender } from '@lifeverse/shared';
 import type { Finance } from '@lifeverse/shared';
 
@@ -70,8 +68,6 @@ characterRouter.get('/:id', (req, res, next) => {
     const achievements = AchievementsModel.findByCharacterId(id);
     const eventLog = EventLogModel.findByCharacterId(id, 200);
     const domains = DomainsModel.ensureExists(id);
-    const resources = ResourcesModel.ensureExists(id, 3);
-    const availableActivities = ActivityService.getAvailableActivities(id);
     const job = JobModel.findActive(id);
     const eligibleJobs = JobService.listEligibility(id);
     const ownedAssets = AssetsModel.findByCharacterId(id);
@@ -87,21 +83,13 @@ characterRouter.get('/:id', (req, res, next) => {
     const dealership = GarageService.getDealership(id);
     const collectibles = ShopService.getCollection(id);
 
-    // Legacy focus fields — computed from resources for backwards compat
-    const focus = {
-      total: resources.totalTimeSlots,
-      spent: resources.usedTimeSlots,
-      remaining: resources.totalTimeSlots - resources.usedTimeSlots,
-    };
-
     res.json({
       data: {
         state, relationships, finance, careers, education, achievements, eventLog,
-        domains, resources, availableActivities,
+        domains,
         job, eligibleJobs, ownedAssets, flags,
         loans, expenses, financeSummary, timeline,
         housing, listings, properties, garage, dealership, collectibles,
-        focus, availableFocusActions: [],
       },
     });
   } catch (err) { next(err); }

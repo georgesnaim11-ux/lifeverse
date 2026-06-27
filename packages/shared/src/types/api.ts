@@ -50,16 +50,20 @@ export interface CreateCharacterResponse {
 export interface GetCharacterResponse {
   state: CharacterState;
   relationships: Relationship[];
-  focus: FocusBudget;
-  availableFocusActions: FocusAction[];
+  /** @deprecated time-slot/focus system removed; inert. */
+  focus?: FocusBudget;
+  /** @deprecated */
+  availableFocusActions?: FocusAction[];
   finance: Finance;
   careers: Career[];
   education: Education[];
   achievements: EarnedAchievement[];
   eventLog: EventLogEntry[];
   domains: DomainState;
-  resources: CharacterResources;
-  availableActivities: ActivityDefinition[];
+  /** @deprecated time-slot/energy system removed; inert. */
+  resources?: CharacterResources;
+  /** @deprecated old domain-gated activities replaced by the Activities system. */
+  availableActivities?: ActivityDefinition[];
   /** Current active job, if any. */
   job: JobState | null;
   /** All jobs with per-job eligibility for the careers screen. */
@@ -98,14 +102,14 @@ export interface AgeUpResponse {
   state: CharacterState;
   /** Events surfaced this year, awaiting player choices. */
   events: PresentedEvent[];
-  focus: FocusBudget;
-  availableFocusActions: FocusAction[];
+  focus?: FocusBudget;
+  availableFocusActions?: FocusAction[];
   finance: Finance;
   isDead: boolean;
   newAchievements: EarnedAchievement[];
   domains: DomainState;
-  resources: CharacterResources;
-  availableActivities: ActivityDefinition[];
+  resources?: CharacterResources;
+  availableActivities?: ActivityDefinition[];
   job: JobState | null;
   eligibleJobs: JobEligibility[];
   ownedAssets: OwnedAsset[];
