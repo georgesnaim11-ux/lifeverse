@@ -5,11 +5,66 @@ import { env } from './config/env.js';
 import { router } from './routes/index.js';
 import { logger } from './utils/logger.js';
 
+/**
+ * Tiny in-memory per-IP rate limiter for the public API. Not a substitute for a
+ * real gateway, but stops trivial hammering of the exposed endpoint. Behind a
+ * proxy (cloudflared/Render) `trust proxy` makes `req.ip` the real client.
+ */
+function makeRateLimiter(windowMs: number, max: number) {
+  const hits = new Map<string, number[]>();
+  // Periodic sweep so the map can't grow unbounded (unref'd — won't hold the process open).
+  setInterval(() => {
+    const cutoff = Date.now() - windowMs;
+    for (const [ip, times] of hits) {
+      const kept = times.filter((t) => t > cutoff);
+      if (kept.length === 0) hits.delete(ip); else hits.set(ip, kept);
+    }
+  }, windowMs).unref?.();
+
+  return (req: express.Request, res: express.Response, next: express.NextFunction): void => {
+    const ip = req.ip ?? 'unknown';
+    const now = Date.now();
+    const recent = (hits.get(ip) ?? []).filter((t) => now - t < windowMs);
+    recent.push(now);
+    hits.set(ip, recent);
+    if (recent.length > max) {
+      res.status(429).json({ error: { code: 'RATE_LIMITED', message: 'Too many requests. Please slow down.' } });
+      return;
+    }
+    next();
+  };
+}
+
 export function createApp(): express.Application {
   const app = express();
 
+  // Behind cloudflared / Render, honour X-Forwarded-For so req.ip is the real client.
+  app.set('trust proxy', true);
+  app.disable('x-powered-by');
+
+  // Security headers (hand-rolled — no extra deps). The client is a self-contained
+  // same-origin bundle, so a strict script-src is safe.
+  app.use((_req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('Referrer-Policy', 'no-referrer');
+    res.setHeader('X-DNS-Prefetch-Control', 'off');
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+    res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+    res.setHeader(
+      'Content-Security-Policy',
+      "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; " +
+      "img-src 'self' data:; font-src 'self' data:; connect-src 'self'; " +
+      "frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'",
+    );
+    next();
+  });
+
   app.use(cors({ origin: env.corsOrigins, credentials: true }));
   app.use(express.json({ limit: '1mb' }));
+
+  // Rate-limit the API only (not static assets): 150 requests / 10s per client.
+  app.use('/api', makeRateLimiter(10_000, 150));
 
   // All game routes under /api
   app.use('/api', router);
