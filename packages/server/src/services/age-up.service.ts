@@ -231,7 +231,7 @@ export const AgeUpService = {
       const character = CharacterModel.findById(characterId);
       if (!character) throw new Error(`Character ${characterId} not found`);
 
-      const { stats } = applyChoice(character.bloodlineId, characterId, eventId, choiceId, character.age);
+      const { stats, navigateTo } = applyChoice(character.bloodlineId, characterId, eventId, choiceId, character.age);
 
       const flags = FlagsModel.getAll(characterId);
       const finance = FinanceModel.findByCharacterId(characterId) ?? blankFinance(characterId);
@@ -242,7 +242,7 @@ export const AgeUpService = {
       if (!logEntry) throw new Error('Log entry not created');
 
       const state = CharacterService.getFullState(characterId);
-      return { state, logEntry, newAchievements };
+      return { state, logEntry, newAchievements, ...(navigateTo ? { navigateTo } : {}) };
     });
   },
 };

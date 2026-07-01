@@ -38,6 +38,7 @@ interface Props {
   onCasino: (game: string, bet: number) => void;
   onMakeChoice: (eventId: string, choiceId: string) => void;
   onContinueAfterOutcome: () => void;
+  pendingNavigation: string | null;
   onDismissAchievements: () => void;
   onClearMessage: () => void;
   onSave: () => void;
@@ -118,7 +119,7 @@ export function MobileGameLayout(props: Props): JSX.Element {
     charState, fullData, domains,
     job, eligibleJobs, phase, pendingEvents, currentEventIndex,
     lastOutcome, newAchievements, isLoading, error, actionMessage,
-    onAgeUp, onPerformActivity, onVacation, onCasino, onMakeChoice, onContinueAfterOutcome,
+    onAgeUp, onPerformActivity, onVacation, onCasino, onMakeChoice, onContinueAfterOutcome, pendingNavigation,
     onDismissAchievements, onClearMessage, onSave,
     onApplyJob, onPromote, onWorkHard, onQuitJob,
     onEnroll, onStudy, onAttendClass, onTakeExam,
@@ -164,6 +165,21 @@ export function MobileGameLayout(props: Props): JSX.Element {
 
   const closeSheet = () => setSheet('none');
 
+  // Events can route the player to an existing tab after the outcome.
+  const [activitiesOpenCat, setActivitiesOpenCat] = useState<string | undefined>(undefined);
+  const NAV_TO_SHEET: Record<string, Sheet> = {
+    education: 'education', career: 'career', family: 'love', home: 'shopping',
+    shop: 'shop', finance: 'finance', activities: 'activities', 'activities-vacation': 'activities',
+  };
+  function handleContinue(): void {
+    const nav = pendingNavigation;
+    onContinueAfterOutcome();
+    if (!nav) return;
+    if (nav === 'activities-vacation') setActivitiesOpenCat('travel');
+    const target = NAV_TO_SHEET[nav];
+    if (target) setSheet(target);
+  }
+
   const mainView = (): JSX.Element => {
     if (phase === 'events' && pendingEvents[currentEventIndex]) {
       const ev = pendingEvents[currentEventIndex]!;
@@ -195,7 +211,7 @@ export function MobileGameLayout(props: Props): JSX.Element {
         <div className="lv-outcome">
           <div className="lv-outcome-label">What Happened</div>
           <div className="lv-outcome-text">"{lastOutcome}"</div>
-          <button className="lv-btn lv-btn-success" disabled={isLoading} onClick={onContinueAfterOutcome}>Continue Living →</button>
+          <button className="lv-btn lv-btn-success" disabled={isLoading} onClick={handleContinue}>Continue Living →</button>
         </div>
       );
     }
@@ -344,7 +360,7 @@ export function MobileGameLayout(props: Props): JSX.Element {
 
       {/* Sheets */}
       <ActivitiesSheet isOpen={sheet === 'activities'} onClose={closeSheet} age={character.age} cash={finance.cash} isLoading={isLoading}
-        onPerform={onPerformActivity} onVacation={onVacation} onCasino={onCasino} />
+        onPerform={onPerformActivity} onVacation={onVacation} onCasino={onCasino} openCategory={activitiesOpenCat} />
       <StatsSheet isOpen={sheet === 'stats'} onClose={closeSheet} stats={stats} domains={domains} />
       <LifeLogSheet isOpen={sheet === 'log'} onClose={closeSheet} entries={fullData.eventLog} />
       <CareerSheet isOpen={sheet === 'career'} onClose={closeSheet} job={job} eligibleJobs={eligibleJobs} isLoading={isLoading} onApply={onApplyJob} onPromote={onPromote} onWorkHard={onWorkHard} onQuit={onQuitJob} />

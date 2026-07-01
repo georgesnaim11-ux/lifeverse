@@ -2,7 +2,7 @@ import { ALL_EVENTS, getEventById } from '../events/registry.js';
 import { StatsModel, FlagsModel, TraitsModel, EventLogModel, ThreadsModel } from '../models/index.js';
 import { applyDeltas } from '../engine/stat.engine.js';
 import { GAME_CONSTANTS, LIFE_STAGES_IN_ORDER } from '@lifeverse/shared';
-import type { GameEvent, PresentedEvent, StatCondition, StatBlock, LifeStage } from '@lifeverse/shared';
+import type { GameEvent, PresentedEvent, StatCondition, StatBlock, LifeStage, NavTarget } from '@lifeverse/shared';
 
 /**
  * Evaluate a single stat condition against the current stat block.
@@ -56,6 +56,9 @@ export function selectEventsForTurn(
   const eligible = ALL_EVENTS.filter((event) => {
     // 1. Stage
     if (!event.stages.includes(stage)) return false;
+    // 1b. Exact-age gating (age-appropriate milestones)
+    if (event.minAge !== undefined && age < event.minAge) return false;
+    if (event.maxAge !== undefined && age > event.maxAge) return false;
     // 2. Cooldown
     const cd = event.cooldownYears ?? 0;
     if (cd > 0 && recentEventIds.has(event.id)) {
@@ -81,15 +84,23 @@ export function selectEventsForTurn(
     return true;
   });
 
-  // Weighted random selection without replacement
-  const count = GAME_CONSTANTS.eventsPerTurn.min +
-    Math.floor(Math.random() * (
-      GAME_CONSTANTS.eventsPerTurn.max - GAME_CONSTANTS.eventsPerTurn.min + 1
-    ));
+  // Milestones fire deterministically; the rest of the slot(s) fill from the
+  // weighted-random "normal" pool. Total is capped at eventsPerTurn.max (1–2).
+  const milestones = eligible.filter((e) => e.priority === 'milestone');
+  const normal = eligible.filter((e) => e.priority !== 'milestone');
+  const { min, max } = GAME_CONSTANTS.eventsPerTurn;
 
   const selected: GameEvent[] = [];
-  const pool = [...eligible];
-  for (let i = 0; i < Math.min(count, pool.length); i++) {
+  if (milestones.length > 0) {
+    // Highest-weight eligible milestone, chosen deterministically.
+    const m = [...milestones].sort((a, b) => (b.weight ?? 1) - (a.weight ?? 1))[0]!;
+    selected.push(m);
+  }
+
+  const targetTotal = min + Math.floor(Math.random() * (max - min + 1));
+  const want = Math.min(max, Math.max(selected.length, targetTotal));
+  const pool = [...normal];
+  while (selected.length < want && pool.length > 0) {
     const totalWeight = pool.reduce((sum, e) => sum + (e.weight ?? 1), 0);
     let roll = Math.random() * totalWeight;
     const idx = pool.findIndex((e) => { roll -= (e.weight ?? 1); return roll <= 0; });
@@ -110,7 +121,7 @@ export function applyChoice(
   eventId: string,
   choiceId: string,
   age: number,
-): { stats: StatBlock; outcomeText: string } {
+): { stats: StatBlock; outcomeText: string; navigateTo?: NavTarget } {
   const event = getEventById(eventId);
   if (!event) throw new Error(`Unknown event: ${eventId}`);
   const choice = event.choices.find((c) => c.id === choiceId);
@@ -138,5 +149,5 @@ export function applyChoice(
     }
   }
 
-  return { stats: updated, outcomeText: choice.outcome };
+  return { stats: updated, outcomeText: choice.outcome, ...(choice.navigateTo ? { navigateTo: choice.navigateTo } : {}) };
 }

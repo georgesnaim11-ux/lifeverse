@@ -50,7 +50,7 @@ export const GAME_CONSTANTS = {
   stressPerFocusPoint: 4,
 
   /** Number of events surfaced per turn (inclusive range). */
-  eventsPerTurn: { min: 1, max: 3 },
+  eventsPerTurn: { min: 1, max: 2 },
 
   /** Age boundaries (inclusive lower bound) for each life stage. */
   lifeStageAgeThresholds: {

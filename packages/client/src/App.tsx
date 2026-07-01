@@ -358,6 +358,7 @@ export function App(): JSX.Element {
           onCasino={game.casinoBet}
           onMakeChoice={game.makeChoice}
           onContinueAfterOutcome={game.continueAfterOutcome}
+          pendingNavigation={game.pendingNavigation}
           onDismissAchievements={game.dismissAchievements}
           onClearMessage={game.clearMessage}
           onSave={handleSave}

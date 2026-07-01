@@ -18,6 +18,20 @@ export interface FlagCondition {
   value: boolean;
 }
 
+/**
+ * Where a choice can send the player after it resolves — the game opens the
+ * matching existing tab instead of spawning a new flow.
+ */
+export type NavTarget =
+  | 'education'
+  | 'career'
+  | 'family'
+  | 'home'
+  | 'shop'
+  | 'finance'
+  | 'activities'
+  | 'activities-vacation';
+
 /** One selectable response to an event. */
 export interface Choice {
   /** Stable id, unique within the event. */
@@ -29,6 +43,8 @@ export interface Choice {
   flagChanges: FlagChange[];
   /** Flavour text shown after the choice resolves. */
   outcome: string;
+  /** If set, the client opens this existing tab after the outcome. */
+  navigateTo?: NavTarget;
   /**
    * Threads this choice plants. Recorded now (data flows into the `threads`
    * table); the firing engine arrives in Phase 2.
@@ -46,6 +62,12 @@ export interface GameEvent {
   description: string;
   /** Life stages in which this event may appear. */
   stages: LifeStage[];
+  /** Exact-age gating (inclusive). Milestones use these for age-appropriate beats. */
+  minAge?: number;
+  maxAge?: number;
+  /** 'milestone' events fire deterministically when eligible; 'normal' (default)
+   * go into the weighted-random pool. */
+  priority?: 'milestone' | 'normal';
   /** All must pass for the event to be eligible. */
   statConditions: StatCondition[];
   /** All must pass for the event to be eligible. */

@@ -4,10 +4,12 @@ import { adolescenceEvents } from './adolescence.js';
 import { youngAdultEvents } from './young-adult.js';
 import { adultEvents } from './adult.js';
 import { seniorEvents } from './senior.js';
+import { milestoneEvents } from './milestones.js';
 
 /** All authored event definitions — the canonical pool. */
 export const EVENT_REGISTRY: Map<string, GameEvent> = new Map(
   [
+    ...milestoneEvents,
     ...childhoodEvents,
     ...adolescenceEvents,
     ...youngAdultEvents,

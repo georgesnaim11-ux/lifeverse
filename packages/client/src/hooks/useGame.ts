@@ -39,6 +39,8 @@ interface GameState {
   actionMessage: string | null;
   lifeSummary: LifeSummary | null;
   hasSavedGame: boolean;
+  /** Set when an event choice routes the player to a tab; consumed on Continue. */
+  pendingNavigation: string | null;
 }
 
 const INITIAL_STATE: GameState = {
@@ -55,6 +57,7 @@ const INITIAL_STATE: GameState = {
   actionMessage: null,
   lifeSummary: null,
   hasSavedGame: false,
+  pendingNavigation: null,
 };
 
 export function useGame() {
@@ -159,6 +162,7 @@ export function useGame() {
           ...s, phase: 'outcome', charState: result.state, fullData,
           lastOutcome: outcome, currentEventIndex: s.currentEventIndex,
           newAchievements: [...s.newAchievements, ...result.newAchievements],
+          pendingNavigation: result.navigateTo ?? s.pendingNavigation,
           isLoading: false,
         }));
       } else {
@@ -166,6 +170,7 @@ export function useGame() {
           ...s, charState: result.state, lastOutcome: outcome,
           currentEventIndex: s.currentEventIndex + 1,
           newAchievements: [...s.newAchievements, ...result.newAchievements],
+          pendingNavigation: result.navigateTo ?? s.pendingNavigation,
           isLoading: false,
         }));
       }
@@ -262,7 +267,7 @@ export function useGame() {
     const fullData = await api.getCharacter(state.charState.character.id);
     setState((s) => ({
       ...s, phase: 'playing', fullData, pendingEvents: [],
-      currentEventIndex: 0, lastOutcome: null, newAchievements: [],
+      currentEventIndex: 0, lastOutcome: null, newAchievements: [], pendingNavigation: null,
     }));
   }, [state.charState]);
 

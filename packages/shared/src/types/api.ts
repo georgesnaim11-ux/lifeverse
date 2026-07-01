@@ -1,5 +1,5 @@
 import type { CharacterCreationInput, CharacterState } from './character.js';
-import type { EventLogEntry, PresentedEvent } from './events.js';
+import type { EventLogEntry, PresentedEvent, NavTarget } from './events.js';
 import type { FocusBudget, FocusAction } from './focus.js';
 import type { Relationship } from './relationships.js';
 import type { Finance, Career, Education, EarnedAchievement } from './systems.js';
@@ -128,6 +128,8 @@ export interface ChooseResponse {
   state: CharacterState;
   logEntry: EventLogEntry;
   newAchievements: EarnedAchievement[];
+  /** If the chosen option routes the player to an existing tab. */
+  navigateTo?: NavTarget;
 }
 
 /** POST /api/game/focus-action — kept for backwards compat, may be removed later */

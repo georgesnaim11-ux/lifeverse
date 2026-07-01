@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BottomSheet } from './BottomSheet';
 import {
   ACTIVITIES_BY_CATEGORY, ACTIVITY_CATEGORY_ORDER, ACTIVITY_CATEGORY_LABELS, ACTIVITY_CATEGORY_EMOJI,
@@ -16,6 +16,8 @@ interface Props {
   onPerform: (id: string) => void;
   onVacation: (countryId: string, type: string, activityKey: string) => void;
   onCasino: (game: string, bet: number) => void;
+  /** When set (e.g. routed here by an event), auto-expand this category. */
+  openCategory?: string | undefined;
 }
 
 function fmt(n: number): string {
@@ -24,9 +26,14 @@ function fmt(n: number): string {
   return `$${Math.round(n)}`;
 }
 
-export function ActivitiesSheet({ isOpen, onClose, age, cash, isLoading, onPerform, onVacation, onCasino }: Props): JSX.Element {
+export function ActivitiesSheet({ isOpen, onClose, age, cash, isLoading, onPerform, onVacation, onCasino, openCategory }: Props): JSX.Element {
   const [open, setOpen] = useState<Set<string>>(new Set([ActivityCategory.Health]));
   const toggle = (k: string) => setOpen((p) => { const n = new Set(p); n.has(k) ? n.delete(k) : n.add(k); return n; });
+
+  // When an event routes the player here, expand the requested category.
+  useEffect(() => {
+    if (isOpen && openCategory) setOpen((p) => new Set(p).add(openCategory));
+  }, [isOpen, openCategory]);
 
   // Vacation builder state
   const [vCountry, setVCountry] = useState(COUNTRIES[0]?.id ?? 'usa');
