@@ -30,44 +30,74 @@ export const SCHOOL_TIER_LABELS = ['', 'New Team Member', 'Regular Player', 'Key
 export const TIER_THRESHOLDS = [0, 0, 45, 80, 115, 150];
 
 export const PRO_CLUBS: ProClub[] = [
-  // Soccer
+  // ── Soccer (full ladder 1–5) ──
   { id: 'barcelona',  name: 'FC Barcelona',      sportId: Sport.Soccer, prestige: 5, salaryBand: [8_000_000, 30_000_000] },
   { id: 'realmadrid', name: 'Real Madrid',       sportId: Sport.Soccer, prestige: 5, salaryBand: [8_000_000, 30_000_000] },
   { id: 'mancity',    name: 'Manchester City',   sportId: Sport.Soccer, prestige: 5, salaryBand: [7_000_000, 25_000_000] },
+  { id: 'psg',        name: 'Paris Saint-Germain', sportId: Sport.Soccer, prestige: 5, salaryBand: [7_000_000, 28_000_000] },
+  { id: 'bayern',     name: 'Bayern Munich',     sportId: Sport.Soccer, prestige: 5, salaryBand: [6_000_000, 24_000_000] },
+  { id: 'liverpool',  name: 'Liverpool FC',      sportId: Sport.Soccer, prestige: 4, salaryBand: [4_000_000, 18_000_000] },
+  { id: 'inter',      name: 'Inter Milan',       sportId: Sport.Soccer, prestige: 4, salaryBand: [3_000_000, 14_000_000] },
+  { id: 'dortmund',   name: 'Borussia Dortmund', sportId: Sport.Soccer, prestige: 4, salaryBand: [2_500_000, 12_000_000] },
   { id: 'ajax',       name: 'Ajax Amsterdam',    sportId: Sport.Soccer, prestige: 3, salaryBand: [900_000, 4_000_000] },
   { id: 'porto',      name: 'FC Porto',          sportId: Sport.Soccer, prestige: 3, salaryBand: [800_000, 3_500_000] },
+  { id: 'sevilla',    name: 'Sevilla FC',        sportId: Sport.Soccer, prestige: 3, salaryBand: [900_000, 4_500_000] },
+  { id: 'celtic',     name: 'Celtic FC',         sportId: Sport.Soccer, prestige: 2, salaryBand: [250_000, 1_500_000] },
+  { id: 'leedsutd',   name: 'Leeds United',      sportId: Sport.Soccer, prestige: 2, salaryBand: [300_000, 1_800_000] },
   { id: 'unionfc',    name: 'Union FC',          sportId: Sport.Soccer, prestige: 1, salaryBand: [60_000, 250_000] },
-  // Basketball
+  // ── Basketball ──
   { id: 'lakers',     name: 'Los Angeles Lakers', sportId: Sport.Basketball, prestige: 5, salaryBand: [5_000_000, 40_000_000] },
   { id: 'celtics',    name: 'Boston Celtics',     sportId: Sport.Basketball, prestige: 5, salaryBand: [5_000_000, 40_000_000] },
-  { id: 'bulls',      name: 'Chicago Bulls',      sportId: Sport.Basketball, prestige: 4, salaryBand: [2_000_000, 20_000_000] },
+  { id: 'warriors',   name: 'Golden State Warriors', sportId: Sport.Basketball, prestige: 5, salaryBand: [4_500_000, 38_000_000] },
+  { id: 'heat',       name: 'Miami Heat',        sportId: Sport.Basketball, prestige: 4, salaryBand: [2_500_000, 22_000_000] },
+  { id: 'knicks',     name: 'New York Knicks',   sportId: Sport.Basketball, prestige: 4, salaryBand: [2_500_000, 22_000_000] },
+  { id: 'bulls',      name: 'Chicago Bulls',     sportId: Sport.Basketball, prestige: 4, salaryBand: [2_000_000, 20_000_000] },
+  { id: 'euromadrid', name: 'Real Madrid Baloncesto', sportId: Sport.Basketball, prestige: 3, salaryBand: [500_000, 3_000_000] },
+  { id: 'euroleague', name: 'EuroLeague Athens', sportId: Sport.Basketball, prestige: 2, salaryBand: [120_000, 800_000] },
   { id: 'gleague',    name: 'Capital City G-League', sportId: Sport.Basketball, prestige: 1, salaryBand: [40_000, 120_000] },
-  // Baseball
+  // ── Baseball ──
   { id: 'yankees',    name: 'New York Yankees',  sportId: Sport.Baseball, prestige: 5, salaryBand: [4_000_000, 30_000_000] },
-  { id: 'dodgers',    name: 'LA Dodgers',        sportId: Sport.Baseball, prestige: 4, salaryBand: [2_000_000, 20_000_000] },
+  { id: 'dodgers',    name: 'LA Dodgers',        sportId: Sport.Baseball, prestige: 5, salaryBand: [3_500_000, 28_000_000] },
+  { id: 'redsox',     name: 'Boston Red Sox',    sportId: Sport.Baseball, prestige: 4, salaryBand: [2_000_000, 18_000_000] },
+  { id: 'giantsbb',   name: 'SF Giants',         sportId: Sport.Baseball, prestige: 3, salaryBand: [900_000, 8_000_000] },
+  { id: 'aaa',        name: 'Triple-A Sounds',   sportId: Sport.Baseball, prestige: 2, salaryBand: [60_000, 200_000] },
   { id: 'minors',     name: 'Riverside Minors',  sportId: Sport.Baseball, prestige: 1, salaryBand: [30_000, 90_000] },
-  // Football
+  // ── Football ──
   { id: 'cowboys',    name: 'Dallas Cowboys',    sportId: Sport.Football, prestige: 5, salaryBand: [3_000_000, 25_000_000] },
+  { id: 'chiefs',     name: 'Kansas City Chiefs', sportId: Sport.Football, prestige: 5, salaryBand: [3_000_000, 26_000_000] },
   { id: 'packers',    name: 'Green Bay Packers', sportId: Sport.Football, prestige: 4, salaryBand: [1_500_000, 15_000_000] },
+  { id: 'ninersfb',   name: 'SF 49ers',          sportId: Sport.Football, prestige: 4, salaryBand: [1_500_000, 16_000_000] },
+  { id: 'usfl',       name: 'Spring League',     sportId: Sport.Football, prestige: 2, salaryBand: [60_000, 220_000] },
   { id: 'arenaball',  name: 'Arena League',      sportId: Sport.Football, prestige: 1, salaryBand: [40_000, 100_000] },
-  // Volleyball
+  // ── Volleyball ──
   { id: 'modena',     name: 'Modena Volley',     sportId: Sport.Volleyball, prestige: 4, salaryBand: [200_000, 900_000] },
+  { id: 'zenitvb',    name: 'Zenit Kazan',       sportId: Sport.Volleyball, prestige: 3, salaryBand: [120_000, 500_000] },
   { id: 'beachtour',  name: 'National Beach Tour', sportId: Sport.Volleyball, prestige: 2, salaryBand: [40_000, 150_000] },
-  // Tennis
+  { id: 'regionvb',   name: 'Regional Volley League', sportId: Sport.Volleyball, prestige: 1, salaryBand: [20_000, 70_000] },
+  // ── Tennis ──
   { id: 'atptour',    name: 'ATP World Tour',    sportId: Sport.Tennis, prestige: 5, salaryBand: [500_000, 12_000_000] },
+  { id: 'atp250',     name: 'ATP 250 Circuit',   sportId: Sport.Tennis, prestige: 3, salaryBand: [120_000, 900_000] },
   { id: 'challenger', name: 'Challenger Tour',   sportId: Sport.Tennis, prestige: 2, salaryBand: [40_000, 200_000] },
-  // Swimming
+  { id: 'futures',    name: 'ITF Futures',       sportId: Sport.Tennis, prestige: 1, salaryBand: [15_000, 60_000] },
+  // ── Swimming ──
+  { id: 'islswim',    name: 'International Swim League', sportId: Sport.Swimming, prestige: 5, salaryBand: [250_000, 2_500_000] },
   { id: 'proswim',    name: 'Pro Swim Series',   sportId: Sport.Swimming, prestige: 4, salaryBand: [100_000, 1_500_000] },
   { id: 'natswim',    name: 'National Swim League', sportId: Sport.Swimming, prestige: 2, salaryBand: [30_000, 120_000] },
-  // Track
+  { id: 'clubswim',   name: 'Metro Aquatics Club', sportId: Sport.Swimming, prestige: 1, salaryBand: [15_000, 50_000] },
+  // ── Track ──
   { id: 'diamond',    name: 'Diamond League',    sportId: Sport.Track, prestige: 5, salaryBand: [150_000, 3_000_000] },
+  { id: 'contgold',   name: 'Continental Gold Tour', sportId: Sport.Track, prestige: 3, salaryBand: [60_000, 400_000] },
   { id: 'nattrack',   name: 'National Athletics Circuit', sportId: Sport.Track, prestige: 2, salaryBand: [30_000, 120_000] },
-  // Wrestling
+  { id: 'clubtrack',  name: 'City Track Club',   sportId: Sport.Track, prestige: 1, salaryBand: [12_000, 45_000] },
+  // ── Wrestling ──
   { id: 'prowrestle', name: 'World Wrestling League', sportId: Sport.Wrestling, prestige: 4, salaryBand: [200_000, 3_000_000] },
+  { id: 'natwrestle', name: 'National Wrestling Alliance', sportId: Sport.Wrestling, prestige: 3, salaryBand: [80_000, 500_000] },
   { id: 'regionwrestle', name: 'Regional Wrestling Circuit', sportId: Sport.Wrestling, prestige: 1, salaryBand: [25_000, 80_000] },
-  // Golf
+  // ── Golf ──
   { id: 'pgatour',    name: 'PGA Tour',          sportId: Sport.Golf, prestige: 5, salaryBand: [500_000, 10_000_000] },
+  { id: 'dpworld',    name: 'DP World Tour',     sportId: Sport.Golf, prestige: 4, salaryBand: [200_000, 3_000_000] },
   { id: 'korntour',   name: 'Korn Ferry Tour',   sportId: Sport.Golf, prestige: 2, salaryBand: [50_000, 250_000] },
+  { id: 'minigolf',   name: 'Regional Q-School', sportId: Sport.Golf, prestige: 1, salaryBand: [15_000, 60_000] },
 ];
 export const CLUB_BY_ID = new Map<string, ProClub>(PRO_CLUBS.map((c) => [c.id, c]));
 export function clubsForSport(sport: Sport): ProClub[] {
@@ -89,6 +119,37 @@ export const TRAINING_DECISIONS: TrainingDecision[] = [
   { id: 'trainer',      label: 'Hire Elite Trainer',  emoji: '🧑‍🏫', phases: [S.Pro], skill: 5, fitness: 5, reputation: 1, coach: 2, injuryRisk: 0.02, description: 'Costs nothing here but sweat — world-class guidance.' },
 ];
 export const DECISION_BY_ID = new Map<string, TrainingDecision>(TRAINING_DECISIONS.map((d) => [d.id, d]));
+
+/* ─────────────── Pro-career depth tuning ─────────────── */
+
+/** Combined skill+reputation for offers straight out of school. */
+export const ELITE_OFFER_SCORE = 150;   // offers up to prestige 5
+export const GOOD_OFFER_SCORE = 120;    // offers capped at prestige 2
+/** Contract length by club prestige: [minYears, maxYears]. */
+export const CONTRACT_YEARS_RANGE: [number, number] = [2, 5];
+/** Season rating thresholds for individual honours. */
+export const RATING_TEAM_OF_YEAR = 8.0;
+export const RATING_PLAYER_OF_SEASON = 8.3;
+export const RATING_BALLON_DOR = 8.5;   // + club prestige >= 4
+/** Season points needed for the Golden Boot / top-scorer award, by sport. */
+export const GOLDEN_BOOT_POINTS: Partial<Record<Sport, number>> = {
+  [Sport.Soccer]: 25, [Sport.Basketball]: 800, [Sport.Football]: 14,
+  [Sport.Baseball]: 35, [Sport.Volleyball]: 300,
+};
+/** Single-season points that set a new club record, by sport. */
+export const CLUB_RECORD_POINTS: Partial<Record<Sport, number>> = {
+  [Sport.Soccer]: 40, [Sport.Basketball]: 1200, [Sport.Football]: 20,
+  [Sport.Baseball]: 50, [Sport.Volleyball]: 450, [Sport.Tennis]: 8,
+  [Sport.Swimming]: 12, [Sport.Track]: 12, [Sport.Wrestling]: 25, [Sport.Golf]: 5,
+};
+/** Sports where a "clean sheet" defensive stat makes sense. */
+export const CLEAN_SHEET_SPORTS: Sport[] = [Sport.Soccer, Sport.Football, Sport.Volleyball];
+/** Loan trigger: young + benched at a big club. */
+export const LOAN_MAX_AGE = 22;
+export const LOAN_COACH_THRESHOLD = 40;
+export const LOAN_MIN_PRESTIGE = 4;
+/** History cap so the JSON column stays small. */
+export const SEASON_HISTORY_CAP = 25;
 
 /** School awards, rolled annually from skill + reputation. */
 export const SCHOOL_AWARDS = ['MVP', 'Team Captain', 'Athlete of the Year', 'Championship Winner', 'School Record Holder'];

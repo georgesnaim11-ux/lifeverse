@@ -63,6 +63,27 @@ export interface TrainingDecision {
   description: string;
 }
 
+/** What kind of move a pending offer represents. */
+export const OfferType = {
+  Transfer: 'transfer',
+  Loan: 'loan',
+  Renewal: 'renewal',
+} as const;
+export type OfferType = (typeof OfferType)[keyof typeof OfferType];
+
+/** One professional season's line in the career history. */
+export interface SeasonRecord {
+  age: number;
+  club: string;
+  apps: number;
+  points: number;
+  assists: number;
+  cleanSheets: number;
+  /** Season average match rating, 4.0–9.9. */
+  rating: number;
+  trophies: string[];
+}
+
 /** The full sports-career state sent to the client. */
 export interface SportsCareerState {
   characterId: string;
@@ -91,4 +112,15 @@ export interface SportsCareerState {
   careerEarnings: number;
   awards: string[];
   hallOfFame: boolean;
+  /** Seasons left on the current contract; 0 while a free agent. */
+  contractYears: number;
+  /** Career average match rating. */
+  avgRating: number;
+  cleanSheets: number;
+  seasonHistory: SeasonRecord[];
+  pendingOfferType: OfferType | null;
+  /** Set while out on loan: the parent club to return to. */
+  loanReturnClub: string | null;
+  loanYears: number;
+  captain: boolean;
 }

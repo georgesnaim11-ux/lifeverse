@@ -2,9 +2,9 @@ import { type CSSProperties } from 'react';
 import { BottomSheet } from './BottomSheet';
 import {
   SPORTS, SPORT_BY_ID, SCHOOL_TIER_LABELS, CLUB_BY_ID, TRAINING_DECISIONS,
-  SPORTS_MIN_AGE, SportsPhase,
+  SPORTS_MIN_AGE, SportsPhase, OfferType, CLEAN_SHEET_SPORTS,
 } from '@lifeverse/shared';
-import type { SportsCareerState } from '@lifeverse/shared';
+import type { SportsCareerState, SeasonRecord } from '@lifeverse/shared';
 
 interface Props {
   isOpen: boolean;
@@ -65,17 +65,76 @@ export function SportsSheet(props: Props): JSX.Element {
 
   function offerBanner(): JSX.Element | null {
     if (!sports || !offerClub) return null;
+    const type = sports.pendingOfferType ?? OfferType.Transfer;
+    const title = type === OfferType.Loan ? `🔁 Loan offer: ${offerClub.name}`
+      : type === OfferType.Renewal ? `📜 Contract renewal: ${offerClub.name}`
+      : `📨 Transfer offer: ${offerClub.name}`;
+    const note = type === OfferType.Loan ? 'One season for playing time — salary unchanged'
+      : type === OfferType.Renewal ? 'Extend your stay on improved terms'
+      : `${'⭐'.repeat(offerClub.prestige)} · new contract`;
     return (
       <div style={{ padding: 12, background: 'rgba(63,185,80,0.12)', border: '1px solid var(--success)', borderRadius: 12, marginBottom: 12 }}>
-        <div style={{ fontWeight: 800, fontSize: 14 }}>📨 Offer from {offerClub.name}</div>
+        <div style={{ fontWeight: 800, fontSize: 14 }}>{title}</div>
         <div style={{ fontSize: 12, color: 'var(--muted)', margin: '4px 0 10px' }}>
-          {'⭐'.repeat(offerClub.prestige)} · {fmt(sports.pendingOfferSalary)}/yr contract
+          {note} · {fmt(sports.pendingOfferSalary)}/yr
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
           <button className="lv-btn" style={{ ...miniBtn, borderColor: 'var(--success)', color: 'var(--success)' }} disabled={isLoading} onClick={onAcceptOffer}>Sign ✍️</button>
           <button className="lv-btn" style={miniBtn} disabled={isLoading} onClick={onRejectOffer}>Decline</button>
         </div>
       </div>
+    );
+  }
+
+  function ratingColor(r: number): string {
+    return r >= 8 ? 'var(--success)' : r >= 6.5 ? '#d1a935' : 'var(--danger)';
+  }
+
+  function seasonHistory(): JSX.Element | null {
+    if (!sports || sports.seasonHistory.length === 0) return null;
+    const recent = [...sports.seasonHistory].slice(-5).reverse();
+    return (
+      <>
+        <div className="lv-cat-header"><span>📋</span><span>Season History</span></div>
+        {recent.map((s: SeasonRecord, i: number) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 4px', borderBottom: '1px solid var(--border)', fontSize: 12 }}>
+            <span style={{ color: 'var(--muted)', width: 44, flexShrink: 0 }}>Age {s.age}</span>
+            <span style={{ flex: 1, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.club}</span>
+            <span style={{ color: 'var(--muted)' }}>{s.apps} apps · {s.points} pts</span>
+            <span style={{ fontWeight: 800, color: ratingColor(s.rating), width: 30, textAlign: 'right' }}>{s.rating.toFixed(1)}</span>
+            {s.trophies.length > 0 && <span title={s.trophies.join(', ')}>🏆{s.trophies.length > 1 ? `×${s.trophies.length}` : ''}</span>}
+          </div>
+        ))}
+      </>
+    );
+  }
+
+  function trophyCabinet(): JSX.Element | null {
+    if (!sports || sports.awards.length === 0) return null;
+    const count = (needle: string) => sports!.awards.filter((a) => a.includes(needle)).length;
+    const allCells: Array<[string, number]> = [
+      ['🏆 League titles', count('League Champion')],
+      ['🏅 Domestic cups', count('Domestic Cup')],
+      ['🌍 Continental', count('Continental Champion')],
+      ['👟 Golden Boots', count('Golden Boot')],
+      ["✨ Ballon d'Or", count("Ballon d'Or")],
+      ['⭐ Player of Season', count('Player of the Season')],
+      ['🥇 Team of the Year', count('Team of the Year')],
+      ['📈 Promotions', count('Won Promotion')],
+    ];
+    const cells = allCells.filter(([, n]) => n > 0);
+    if (cells.length === 0) return null;
+    return (
+      <>
+        <div className="lv-cat-header"><span>🏆</span><span>Trophy Cabinet</span></div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 6 }}>
+          {cells.map(([label, n]) => (
+            <div key={label} style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 10, padding: '8px 10px', display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+              <span>{label}</span><span style={{ fontWeight: 800, color: '#d1a935' }}>{n}</span>
+            </div>
+          ))}
+        </div>
+      </>
     );
   }
 
@@ -163,9 +222,28 @@ export function SportsSheet(props: Props): JSX.Element {
         <>
           <div style={{ background: 'var(--card)', border: '1px solid var(--accent-dim)', borderRadius: 14, padding: 14, marginBottom: 12 }}>
             <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>Professional {sportDef.label}</div>
-            <div style={{ fontSize: 17, fontWeight: 800, margin: '2px 0' }}>{sportDef.emoji} {sports.teamName}</div>
-            <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 10 }}>
+            <div style={{ fontSize: 17, fontWeight: 800, margin: '2px 0' }}>
+              {sportDef.emoji} {sports.teamName}{sports.captain ? ' ©' : ''}
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 6 }}>
               {'⭐'.repeat(CLUB_BY_ID.get(sports.clubId ?? '')?.prestige ?? 1)} · {fmt(sports.salary)}/yr · Market value {fmt(sports.marketValue)}
+            </div>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+              <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 99,
+                background: sports.contractYears > 0 ? 'rgba(37,99,235,0.12)' : 'rgba(220,63,72,0.12)',
+                color: sports.contractYears > 0 ? 'var(--accent)' : 'var(--danger)' }}>
+                📜 {sports.contractYears > 0 ? `${sports.contractYears} yr${sports.contractYears > 1 ? 's' : ''} left` : 'Free agent!'}
+              </span>
+              {sports.avgRating > 0 && (
+                <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 99, background: 'rgba(209,169,53,0.14)', color: ratingColor(sports.avgRating) }}>
+                  ⌀ {sports.avgRating.toFixed(2)} rating
+                </span>
+              )}
+              {sports.loanReturnClub && (
+                <span style={{ fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 99, background: 'rgba(109,91,208,0.14)', color: '#6d5bd0' }}>
+                  🔁 On loan — returns to {CLUB_BY_ID.get(sports.loanReturnClub)?.name ?? 'parent club'}
+                </span>
+              )}
             </div>
             <Bar label="Skill" value={sports.skill} color="var(--accent)" />
             <Bar label="Fitness" value={sports.fitness} color="var(--success)" />
@@ -175,6 +253,7 @@ export function SportsSheet(props: Props): JSX.Element {
               <Stat label="Games" value={String(sports.appearances)} />
               <Stat label={sportDef.scoreNoun} value={String(sports.points)} good />
               {sportDef.hasAssists && <Stat label="Assists" value={String(sports.assists)} />}
+              {CLEAN_SHEET_SPORTS.includes(sports.sport) && <Stat label="Clean sheets" value={String(sports.cleanSheets)} good />}
               <Stat label="Titles" value={String(sports.championships)} good />
               <Stat label="Earnings" value={fmt(sports.careerEarnings)} good />
               <Stat label="Seasons" value={String(sports.yearsActive)} />
@@ -189,6 +268,8 @@ export function SportsSheet(props: Props): JSX.Element {
           </div>
           {offerBanner()}
           {decisionCard()}
+          {seasonHistory()}
+          {trophyCabinet()}
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 12 }}>
             <button className="lv-btn" style={miniBtn} disabled={isLoading} onClick={onNegotiate}>💰 Negotiate</button>
             <button className="lv-btn" style={miniBtn} disabled={isLoading} onClick={onRequestTransfer}>📨 Request transfer</button>
@@ -206,10 +287,14 @@ export function SportsSheet(props: Props): JSX.Element {
             <Stat label="Games" value={String(sports.appearances)} />
             <Stat label={sportDef.scoreNoun} value={String(sports.points)} good />
             <Stat label="Titles" value={String(sports.championships)} good />
+            {sports.avgRating > 0 && <Stat label="Avg rating" value={sports.avgRating.toFixed(2)} good />}
+            {CLEAN_SHEET_SPORTS.includes(sports.sport) && <Stat label="Clean sheets" value={String(sports.cleanSheets)} />}
             <Stat label="Earnings" value={fmt(sports.careerEarnings)} good />
             <Stat label="Seasons" value={String(sports.yearsActive)} />
             <Stat label="Awards" value={String(sports.awards.length)} good />
           </div>
+          {trophyCabinet()}
+          {seasonHistory()}
           {sports.awards.length > 0 && (
             <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 8 }}>
               {sports.awards.map((a, i) => (

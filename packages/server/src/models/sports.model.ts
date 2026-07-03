@@ -1,5 +1,5 @@
 import { getDb } from '../db/index.js';
-import type { SportsCareerState, Sport, SportsPhase } from '@lifeverse/shared';
+import type { SportsCareerState, Sport, SportsPhase, SeasonRecord, OfferType } from '@lifeverse/shared';
 
 interface SportsRow {
   character_id: string;
@@ -27,11 +27,21 @@ interface SportsRow {
   career_earnings: number;
   awards: string;
   hall_of_fame: number;
+  contract_years: number;
+  avg_rating: number;
+  clean_sheets: number;
+  season_history: string;
+  pending_offer_type: string | null;
+  loan_return_club: string | null;
+  loan_years: number;
+  captain: number;
 }
 
 function rowToState(row: SportsRow): SportsCareerState {
   let awards: string[] = [];
   try { awards = JSON.parse(row.awards) as string[]; } catch { /* keep [] */ }
+  let history: SeasonRecord[] = [];
+  try { history = JSON.parse(row.season_history) as SeasonRecord[]; } catch { /* keep [] */ }
   return {
     characterId: row.character_id,
     sport: row.sport as Sport,
@@ -58,6 +68,14 @@ function rowToState(row: SportsRow): SportsCareerState {
     careerEarnings: row.career_earnings,
     awards,
     hallOfFame: row.hall_of_fame === 1,
+    contractYears: row.contract_years,
+    avgRating: row.avg_rating,
+    cleanSheets: row.clean_sheets,
+    seasonHistory: history,
+    pendingOfferType: (row.pending_offer_type as OfferType | null) ?? null,
+    loanReturnClub: row.loan_return_club,
+    loanYears: row.loan_years,
+    captain: row.captain === 1,
   };
 }
 
@@ -83,6 +101,9 @@ export const SportsModel = {
       pendingOfferSalary: 'pending_offer_salary', salary: 'salary', marketValue: 'market_value',
       appearances: 'appearances', points: 'points', assists: 'assists', championships: 'championships',
       careerEarnings: 'career_earnings', hallOfFame: 'hall_of_fame',
+      contractYears: 'contract_years', avgRating: 'avg_rating', cleanSheets: 'clean_sheets',
+      pendingOfferType: 'pending_offer_type', loanReturnClub: 'loan_return_club',
+      loanYears: 'loan_years', captain: 'captain',
     };
     const updates: string[] = ["updated_at = datetime('now')"];
     const values: unknown[] = [];
@@ -96,6 +117,10 @@ export const SportsModel = {
     if (fields.awards !== undefined) {
       updates.push('awards = ?');
       values.push(JSON.stringify(fields.awards));
+    }
+    if (fields.seasonHistory !== undefined) {
+      updates.push('season_history = ?');
+      values.push(JSON.stringify(fields.seasonHistory));
     }
     values.push(characterId);
     getDb().prepare(`UPDATE sports_career SET ${updates.join(', ')} WHERE character_id = ?`).run(...values);
