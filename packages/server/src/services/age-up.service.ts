@@ -32,6 +32,7 @@ import { JobService } from './job.service.js';
 import { HousingService } from './housing.service.js';
 import { GarageService } from './garage.service.js';
 import { ShopService } from './shop.service.js';
+import { SportsService } from './sports.service.js';
 import { JobModel, AssetsModel } from '../models/index.js';
 import { ACTIVITY_REGISTRY } from '../activities/registry.js';
 import { GAME_CONSTANTS, LIFE_STAGES_IN_ORDER } from '@lifeverse/shared';
@@ -155,6 +156,9 @@ export const AgeUpService = {
 
       // Collectibles: luxury assets appreciate or depreciate yearly.
       ShopService.annualUpdate(characterId);
+
+      // Sports: yearly development, awards, offers, pro season + salary.
+      SportsService.annualUpdate(characterId, newAge);
 
       // Domain annual update — determine which domains were active this year
       const activeDomains = ActivityLogModel.getActiveDomainsThisYear(

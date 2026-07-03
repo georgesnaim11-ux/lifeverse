@@ -255,6 +255,14 @@ export function useGame() {
   const washVehicle        = useCallback((vehicleId: string) => runAction((id) => api.washVehicle(id, vehicleId)), [runAction]);
   const buyCollectible     = useCallback((category: string, itemKey: string, year: number, condition: string) => runAction((id) => api.buyCollectible(id, category, itemKey, year, condition)), [runAction]);
   const sellCollectible    = useCallback((collectibleId: string) => runAction((id) => api.sellCollectible(id, collectibleId)), [runAction]);
+  const sportsTryout       = useCallback((sport: string) => runAction((id) => api.sportsTryout(id, sport)), [runAction]);
+  const sportsDecide       = useCallback((decisionId: string) => runAction((id) => api.sportsDecide(id, decisionId)), [runAction]);
+  const sportsQuit         = useCallback(() => runAction(api.sportsQuit), [runAction]);
+  const sportsAcceptOffer  = useCallback(() => runAction(api.sportsAcceptOffer), [runAction]);
+  const sportsRejectOffer  = useCallback(() => runAction(api.sportsRejectOffer), [runAction]);
+  const sportsNegotiate    = useCallback(() => runAction(api.sportsNegotiate), [runAction]);
+  const sportsRequestTransfer = useCallback(() => runAction(api.sportsRequestTransfer), [runAction]);
+  const sportsRetire       = useCallback(() => runAction(api.sportsRetire), [runAction]);
   const takeVacation       = useCallback((countryId: string, type: string, activityKey: string) => runAction((id) => api.takeVacation(id, countryId, type, activityKey)), [runAction]);
   const casinoBet          = useCallback((game: string, bet: number) => runAction((id) => api.casinoBet(id, game, bet)), [runAction]);
   const tryForBaby         = useCallback(() => runAction(api.tryForBaby), [runAction]);
@@ -325,6 +333,14 @@ export function useGame() {
     washVehicle,
     buyCollectible,
     sellCollectible,
+    sportsTryout,
+    sportsDecide,
+    sportsQuit,
+    sportsAcceptOffer,
+    sportsRejectOffer,
+    sportsNegotiate,
+    sportsRequestTransfer,
+    sportsRetire,
     takeVacation,
     casinoBet,
     clearMessage,

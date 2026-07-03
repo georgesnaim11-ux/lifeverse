@@ -30,3 +30,4 @@ export { VehicleModel } from './vehicle.model.js';
 export type { CreateVehicleInput } from './vehicle.model.js';
 export { CollectibleModel } from './collectible.model.js';
 export type { CreateCollectibleInput } from './collectible.model.js';
+export { SportsModel } from './sports.model.js';

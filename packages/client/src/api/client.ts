@@ -119,6 +119,24 @@ export const api = {
   sellCollectible: (characterId: string, collectibleId: string) =>
     post<{ characterId: string; collectibleId: string }, { message: string }>('/collectibles/sell', { characterId, collectibleId }),
 
+  // Sports
+  sportsTryout: (characterId: string, sport: string) =>
+    post<{ characterId: string; sport: string }, { message: string }>('/sports/tryout', { characterId, sport }),
+  sportsDecide: (characterId: string, decisionId: string) =>
+    post<{ characterId: string; decisionId: string }, { message: string }>('/sports/decide', { characterId, decisionId }),
+  sportsQuit: (characterId: string) =>
+    post<{ characterId: string }, { message: string }>('/sports/quit', { characterId }),
+  sportsAcceptOffer: (characterId: string) =>
+    post<{ characterId: string }, { message: string }>('/sports/accept-offer', { characterId }),
+  sportsRejectOffer: (characterId: string) =>
+    post<{ characterId: string }, { message: string }>('/sports/reject-offer', { characterId }),
+  sportsNegotiate: (characterId: string) =>
+    post<{ characterId: string }, { message: string }>('/sports/negotiate', { characterId }),
+  sportsRequestTransfer: (characterId: string) =>
+    post<{ characterId: string }, { message: string }>('/sports/request-transfer', { characterId }),
+  sportsRetire: (characterId: string) =>
+    post<{ characterId: string }, { message: string }>('/sports/retire', { characterId }),
+
   // Relationships / love
   findPartner: (characterId: string) =>
     post<{ characterId: string }, { message: string }>('/relationship/find-partner', { characterId }),

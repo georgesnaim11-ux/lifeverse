@@ -11,6 +11,7 @@ import type { OwnedAsset } from './shop.js';
 import type { Loan, ExpenseBreakdown, FinanceSummary, LifeSummary, TimelineEntry } from './finance.js';
 import type { HousingState, Listing, OwnedProperty } from './housing.js';
 import type { OwnedVehicle, VehicleListing } from './vehicles.js';
+import type { SportsCareerState } from './sports.js';
 import type { OwnedCollectible } from './collectibles.js';
 import type { EducationRequirement, Major, PropertyType, VehicleType, WeddingTier } from './enums.js';
 
@@ -92,6 +93,8 @@ export interface GetCharacterResponse {
   dealership: VehicleListing[];
   /** Luxury collectibles the character owns (watches, jewelry, art, boats, aircraft). */
   collectibles: OwnedCollectible[];
+  /** Athletic career (school team → pro club), or null if none. */
+  sports: SportsCareerState | null;
 }
 
 /** POST /api/game/age-up */

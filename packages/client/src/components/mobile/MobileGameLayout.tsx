@@ -8,14 +8,16 @@ import { RelationshipsSheet } from './RelationshipsSheet';
 import { FinanceSheet } from './FinanceSheet';
 import { HousingSheet } from './HousingSheet';
 import { ShopSheet } from './ShopSheet';
+import { SportsSheet } from './SportsSheet';
 import { MAJORS, getCountry } from '@lifeverse/shared';
 import type {
   CharacterState, GetCharacterResponse, PresentedEvent,
   EarnedAchievement, DomainState,
   JobState, JobEligibility, HousingState, Listing, OwnedProperty, OwnedVehicle, VehicleListing, OwnedCollectible,
+  SportsCareerState,
 } from '@lifeverse/shared';
 
-type Sheet = 'none' | 'activities' | 'stats' | 'log' | 'career' | 'education' | 'shopping' | 'shop' | 'love' | 'finance';
+type Sheet = 'none' | 'activities' | 'stats' | 'log' | 'career' | 'education' | 'shopping' | 'shop' | 'sports' | 'love' | 'finance';
 type Phase = 'playing' | 'events' | 'outcome';
 
 interface Props {
@@ -58,6 +60,14 @@ interface Props {
   onWashVehicle: (vehicleId: string) => void;
   onBuyCollectible: (category: string, itemKey: string, year: number, condition: string) => void;
   onSellCollectible: (id: string) => void;
+  onSportsTryout: (sport: string) => void;
+  onSportsDecide: (decisionId: string) => void;
+  onSportsQuit: () => void;
+  onSportsAcceptOffer: () => void;
+  onSportsRejectOffer: () => void;
+  onSportsNegotiate: () => void;
+  onSportsRequestTransfer: () => void;
+  onSportsRetire: () => void;
   onRentProperty: (key: string) => void;
   onBuyHome: (key: string, moveIn?: boolean) => void;
   onSellProperty: (propertyId: string) => void;
@@ -125,6 +135,8 @@ export function MobileGameLayout(props: Props): JSX.Element {
     onEnroll, onStudy, onAttendClass, onTakeExam,
     onBuyCar, onSellVehicle, onSetPrimaryVehicle, onServiceVehicle, onRepairVehicle, onWashVehicle,
     onBuyCollectible, onSellCollectible,
+    onSportsTryout, onSportsDecide, onSportsQuit, onSportsAcceptOffer, onSportsRejectOffer,
+    onSportsNegotiate, onSportsRequestTransfer, onSportsRetire,
     onRentProperty, onBuyHome, onSellProperty, onSetResidence, onToggleRentOut, onMoveInParents,
     onFindPartner, onGoOnDate, onPropose, onPlanWedding, onDelayWedding, onCancelEngagement, onBreakUp,
     onTryForBaby, onToggleBirthControl, onDivorce,
@@ -144,6 +156,7 @@ export function MobileGameLayout(props: Props): JSX.Element {
   const garage: OwnedVehicle[] = fullData.garage ?? [];
   const dealership: VehicleListing[] = fullData.dealership ?? [];
   const collectibles: OwnedCollectible[] = fullData.collectibles ?? [];
+  const sports: SportsCareerState | null = fullData.sports ?? null;
   const hasLivingParents = (fullData.relationships ?? []).some((r) => r.type === 'parent' && r.isAlive);
 
   // Auto-dismiss the action message toast
@@ -356,12 +369,19 @@ export function MobileGameLayout(props: Props): JSX.Element {
         <button className={`lv-nav-tab ${sheet === 'shop' ? 'active' : ''}`} onClick={() => setSheet('shop')}>
           <span className="lv-nav-tab-icon">🛍️</span><span className="lv-nav-tab-label">Shop</span>
         </button>
+        <button className={`lv-nav-tab ${sheet === 'sports' ? 'active' : ''}`} onClick={() => setSheet('sports')}>
+          <span className="lv-nav-tab-icon">🏅</span><span className="lv-nav-tab-label">Sports</span>
+        </button>
       </nav>
 
       {/* Sheets */}
       <ActivitiesSheet isOpen={sheet === 'activities'} onClose={closeSheet} age={character.age} cash={finance.cash} isLoading={isLoading}
         onPerform={onPerformActivity} onVacation={onVacation} onCasino={onCasino} openCategory={activitiesOpenCat} />
       <StatsSheet isOpen={sheet === 'stats'} onClose={closeSheet} stats={stats} domains={domains} />
+      <SportsSheet isOpen={sheet === 'sports'} onClose={closeSheet} sports={sports} age={character.age} isLoading={isLoading}
+        onTryout={onSportsTryout} onDecide={onSportsDecide} onQuit={onSportsQuit}
+        onAcceptOffer={onSportsAcceptOffer} onRejectOffer={onSportsRejectOffer}
+        onNegotiate={onSportsNegotiate} onRequestTransfer={onSportsRequestTransfer} onRetire={onSportsRetire} />
       <LifeLogSheet isOpen={sheet === 'log'} onClose={closeSheet} entries={fullData.eventLog} />
       <CareerSheet isOpen={sheet === 'career'} onClose={closeSheet} job={job} eligibleJobs={eligibleJobs} isLoading={isLoading} onApply={onApplyJob} onPromote={onPromote} onWorkHard={onWorkHard} onQuit={onQuitJob} />
       <EducationSheet isOpen={sheet === 'education'} onClose={closeSheet} charState={charState} education={fullData.education} flags={flags} isLoading={isLoading} onEnroll={onEnroll} onStudy={onStudy} onAttendClass={onAttendClass} onTakeExam={onTakeExam} />

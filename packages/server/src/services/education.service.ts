@@ -24,7 +24,11 @@ export const EducationService = {
   /** Enrol the character in a new education level. */
   enrol(characterId: string, level: EducationLevel, age: number): Education | null {
     if (EducationModel.hasCompleted(characterId, level)) return null;
-    const cost = EDUCATION_COST[level] ?? 0;
+    let cost = EDUCATION_COST[level] ?? 0;
+    // Athletic (or academic) scholarship halves tuition.
+    if (cost > 0 && FlagsModel.getAll(characterId)['hasScholarship']) {
+      cost = Math.round(cost / 2);
+    }
     const edu = EducationModel.create(characterId, level, age, cost);
     // Paid tuition is financed by a student loan (real debt with payments).
     if (cost > 0) FinanceService.addStudentLoan(characterId, cost);

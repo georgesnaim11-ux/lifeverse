@@ -378,6 +378,14 @@ export function App(): JSX.Element {
           onWashVehicle={game.washVehicle}
           onBuyCollectible={game.buyCollectible}
           onSellCollectible={game.sellCollectible}
+          onSportsTryout={game.sportsTryout}
+          onSportsDecide={game.sportsDecide}
+          onSportsQuit={game.sportsQuit}
+          onSportsAcceptOffer={game.sportsAcceptOffer}
+          onSportsRejectOffer={game.sportsRejectOffer}
+          onSportsNegotiate={game.sportsNegotiate}
+          onSportsRequestTransfer={game.sportsRequestTransfer}
+          onSportsRetire={game.sportsRetire}
           onRentProperty={game.rentProperty}
           onBuyHome={game.buyHome}
           onSellProperty={game.sellProperty}
