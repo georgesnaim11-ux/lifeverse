@@ -261,6 +261,8 @@ export const SportsService = {
 
     if (career.phase === SportsPhase.School) {
       fields.skill = clamp(career.skill + Math.round(career.coachApproval / 25) + (injured ? -2 : 1));
+      // Visibility grows with seniority: scouts notice starters and captains.
+      fields.reputation = clamp(career.reputation + 1 + Math.round(career.tier / 2));
       fields.coachApproval = clamp(career.coachApproval - 2);
       if (career.coachApproval <= 8) {
         SportsModel.delete(characterId);
@@ -291,7 +293,7 @@ export const SportsService = {
       }
       // Performance-tiered post-school outcomes.
       if (age >= 18 && !career.pendingOfferClub) {
-        if (score >= ELITE_OFFER_SCORE && Math.random() < 0.7) {
+        if (score >= ELITE_OFFER_SCORE && Math.random() < 0.85) {
           const offer = pickClub(career.sport, score);
           if (offer) {
             fields.pendingOfferClub = offer.clubId;
@@ -300,7 +302,7 @@ export const SportsService = {
             const club = CLUB_BY_ID.get(offer.clubId)!;
             EventLogModel.create(characterId, 'sports:pro_offer', age, 'milestone', `📨 ${club.name} wants to sign you — $${offer.salary.toLocaleString()}/yr!`);
           }
-        } else if (score >= GOOD_OFFER_SCORE && Math.random() < 0.5) {
+        } else if (score >= GOOD_OFFER_SCORE && Math.random() < 0.65) {
           const offer = pickClub(career.sport, score, { maxPrestige: 2 });
           if (offer) {
             fields.pendingOfferClub = offer.clubId;
@@ -313,7 +315,19 @@ export const SportsService = {
           EventLogModel.create(characterId, 'sports:no_offers', age, 'sports', 'No professional offers came. The dream needs more work.');
         }
       }
-      if (age >= 23 && !career.pendingOfferClub) {
+      // Final window: any committed athlete gets one guaranteed semi-pro shot
+      // before the school career ends, so careers don't dead-end silently.
+      if (age >= 22 && !career.pendingOfferClub && !fields.pendingOfferClub && score >= 60) {
+        const offer = pickClub(career.sport, Math.max(score, 60), { maxPrestige: 1 });
+        if (offer) {
+          fields.pendingOfferClub = offer.clubId;
+          fields.pendingOfferSalary = offer.salary;
+          fields.pendingOfferType = OfferType.Transfer;
+          const club = CLUB_BY_ID.get(offer.clubId)!;
+          EventLogModel.create(characterId, 'sports:pro_offer', age, 'sports', `📨 Last chance: ${club.name} offers a semi-pro deal — $${offer.salary.toLocaleString()}/yr.`);
+        }
+      }
+      if (age >= 24 && !career.pendingOfferClub && !fields.pendingOfferClub) {
         SportsModel.update(characterId, { ...fields, phase: SportsPhase.Retired });
         EventLogModel.create(characterId, 'sports:school_end', age, 'sports', 'School athletics came to a natural end.');
         return;

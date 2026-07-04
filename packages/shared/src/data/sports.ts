@@ -6,7 +6,7 @@ export const SPORTS_MIN_AGE = 12;
 /** Age at which yearly performance starts declining for pros. */
 export const SPORTS_DECLINE_AGE = 30;
 /** Skill+reputation needed (combined) for a scholarship offer at 17–18. */
-export const SCHOLARSHIP_THRESHOLD = 110;
+export const SCHOLARSHIP_THRESHOLD = 90;
 /** Combined skill+reputation floor before any pro offer can appear. */
 export const PRO_OFFER_THRESHOLD = 120;
 
@@ -122,9 +122,11 @@ export const DECISION_BY_ID = new Map<string, TrainingDecision>(TRAINING_DECISIO
 
 /* ─────────────── Pro-career depth tuning ─────────────── */
 
-/** Combined skill+reputation for offers straight out of school. */
-export const ELITE_OFFER_SCORE = 150;   // offers up to prestige 5
-export const GOOD_OFFER_SCORE = 120;    // offers capped at prestige 2
+/** Combined skill+reputation for offers straight out of school.
+ * Tuned for ORGANIC play: a dedicated athlete (good yearly decisions from 13)
+ * reaches ~85–120 by 18–20 — don't calibrate these against test-pumped stats. */
+export const ELITE_OFFER_SCORE = 115;   // offers up to prestige 5
+export const GOOD_OFFER_SCORE = 85;     // offers capped at prestige 2
 /** Contract length by club prestige: [minYears, maxYears]. */
 export const CONTRACT_YEARS_RANGE: [number, number] = [2, 5];
 /** Season rating thresholds for individual honours. */
