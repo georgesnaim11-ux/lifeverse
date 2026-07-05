@@ -9,15 +9,16 @@ import { FinanceSheet } from './FinanceSheet';
 import { HousingSheet } from './HousingSheet';
 import { ShopSheet } from './ShopSheet';
 import { SportsSheet } from './SportsSheet';
+import { BusinessSheet } from './BusinessSheet';
 import { MAJORS, getCountry } from '@lifeverse/shared';
 import type {
   CharacterState, GetCharacterResponse, PresentedEvent,
   EarnedAchievement, DomainState,
   JobState, JobEligibility, HousingState, Listing, OwnedProperty, OwnedVehicle, VehicleListing, OwnedCollectible,
-  SportsCareerState,
+  SportsCareerState, BusinessState,
 } from '@lifeverse/shared';
 
-type Sheet = 'none' | 'activities' | 'stats' | 'log' | 'career' | 'education' | 'shopping' | 'shop' | 'sports' | 'love' | 'finance';
+type Sheet = 'none' | 'activities' | 'stats' | 'log' | 'career' | 'education' | 'shopping' | 'shop' | 'sports' | 'business' | 'love' | 'finance';
 type Phase = 'playing' | 'events' | 'outcome';
 
 interface Props {
@@ -68,6 +69,24 @@ interface Props {
   onSportsNegotiate: () => void;
   onSportsRequestTransfer: () => void;
   onSportsRetire: () => void;
+  onBusinessCreate: (input: { industry: string; name: string; logo: string; brandColor: string; hqCountry: string; investment: number }) => void;
+  onBusinessLaunchProduct: (key: string) => void;
+  onBusinessSetPrice: (key: string, tier: string) => void;
+  onBusinessImprove: (key: string) => void;
+  onBusinessDiscontinue: (key: string) => void;
+  onBusinessHire: (role: string, count: number) => void;
+  onBusinessFire: (role: string, count: number) => void;
+  onBusinessTrain: (role: string) => void;
+  onBusinessBonus: () => void;
+  onBusinessSupplier: (tier: number) => void;
+  onBusinessMarketing: (level: number) => void;
+  onBusinessRnd: (level: number) => void;
+  onBusinessConsultantHire: (id: string) => void;
+  onBusinessConsultantDrop: (id: string) => void;
+  onBusinessExpand: (id: string) => void;
+  onBusinessInvest: (amount: number) => void;
+  onBusinessWithdraw: (amount: number) => void;
+  onBusinessSell: () => void;
   onRentProperty: (key: string) => void;
   onBuyHome: (key: string, moveIn?: boolean) => void;
   onSellProperty: (propertyId: string) => void;
@@ -137,6 +156,10 @@ export function MobileGameLayout(props: Props): JSX.Element {
     onBuyCollectible, onSellCollectible,
     onSportsTryout, onSportsDecide, onSportsQuit, onSportsAcceptOffer, onSportsRejectOffer,
     onSportsNegotiate, onSportsRequestTransfer, onSportsRetire,
+    onBusinessCreate, onBusinessLaunchProduct, onBusinessSetPrice, onBusinessImprove, onBusinessDiscontinue,
+    onBusinessHire, onBusinessFire, onBusinessTrain, onBusinessBonus, onBusinessSupplier,
+    onBusinessMarketing, onBusinessRnd, onBusinessConsultantHire, onBusinessConsultantDrop,
+    onBusinessExpand, onBusinessInvest, onBusinessWithdraw, onBusinessSell,
     onRentProperty, onBuyHome, onSellProperty, onSetResidence, onToggleRentOut, onMoveInParents,
     onFindPartner, onGoOnDate, onPropose, onPlanWedding, onDelayWedding, onCancelEngagement, onBreakUp,
     onTryForBaby, onToggleBirthControl, onDivorce,
@@ -157,6 +180,7 @@ export function MobileGameLayout(props: Props): JSX.Element {
   const dealership: VehicleListing[] = fullData.dealership ?? [];
   const collectibles: OwnedCollectible[] = fullData.collectibles ?? [];
   const sports: SportsCareerState | null = fullData.sports ?? null;
+  const business: BusinessState | null = fullData.business ?? null;
   const hasLivingParents = (fullData.relationships ?? []).some((r) => r.type === 'parent' && r.isAlive);
 
   // Auto-dismiss the action message toast
@@ -383,7 +407,14 @@ export function MobileGameLayout(props: Props): JSX.Element {
         onAcceptOffer={onSportsAcceptOffer} onRejectOffer={onSportsRejectOffer}
         onNegotiate={onSportsNegotiate} onRequestTransfer={onSportsRequestTransfer} onRetire={onSportsRetire} />
       <LifeLogSheet isOpen={sheet === 'log'} onClose={closeSheet} entries={fullData.eventLog} />
-      <CareerSheet isOpen={sheet === 'career'} onClose={closeSheet} job={job} eligibleJobs={eligibleJobs} isLoading={isLoading} onApply={onApplyJob} onPromote={onPromote} onWorkHard={onWorkHard} onQuit={onQuitJob} />
+      <CareerSheet isOpen={sheet === 'career'} onClose={closeSheet} job={job} eligibleJobs={eligibleJobs} business={business} isLoading={isLoading} onApply={onApplyJob} onPromote={onPromote} onWorkHard={onWorkHard} onQuit={onQuitJob} onOpenBusiness={() => setSheet('business')} />
+      <BusinessSheet isOpen={sheet === 'business'} onClose={closeSheet} business={business} age={character.age} playerCash={finance.cash} isLoading={isLoading}
+        onCreate={onBusinessCreate} onLaunchProduct={onBusinessLaunchProduct} onSetPrice={onBusinessSetPrice}
+        onImprove={onBusinessImprove} onDiscontinue={onBusinessDiscontinue}
+        onHire={onBusinessHire} onFire={onBusinessFire} onTrain={onBusinessTrain} onBonus={onBusinessBonus}
+        onSupplier={onBusinessSupplier} onMarketing={onBusinessMarketing} onRnd={onBusinessRnd}
+        onConsultantHire={onBusinessConsultantHire} onConsultantDrop={onBusinessConsultantDrop}
+        onExpand={onBusinessExpand} onInvest={onBusinessInvest} onWithdraw={onBusinessWithdraw} onSell={onBusinessSell} />
       <EducationSheet isOpen={sheet === 'education'} onClose={closeSheet} charState={charState} education={fullData.education} flags={flags} isLoading={isLoading} onEnroll={onEnroll} onStudy={onStudy} onAttendClass={onAttendClass} onTakeExam={onTakeExam} />
       <HousingSheet isOpen={sheet === 'shopping'} onClose={closeSheet} housing={housing} listings={listings} properties={properties}
         finance={finance} age={character.age} hasLivingParents={hasLivingParents} isLoading={isLoading}

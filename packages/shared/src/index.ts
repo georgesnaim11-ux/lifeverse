@@ -27,6 +27,7 @@ export * from './types/housing.js';
 export * from './types/vehicles.js';
 export * from './types/collectibles.js';
 export * from './types/sports.js';
+export * from './types/business.js';
 
 // Constants
 export * from './constants/game.js';
@@ -41,4 +42,5 @@ export * from './data/realestate.js';
 export * from './data/vehicles.js';
 export * from './data/collectibles.js';
 export * from './data/sports.js';
+export * from './data/business.js';
 export * from './data/activities.js';

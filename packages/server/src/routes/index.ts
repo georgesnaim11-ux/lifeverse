@@ -11,6 +11,7 @@ import { housingRouter } from './housing.routes.js';
 import { garageRouter } from './garage.routes.js';
 import { shopRouter } from './shop.routes.js';
 import { sportsRouter } from './sports.routes.js';
+import { businessRouter } from './business.routes.js';
 
 export const router = Router();
 
@@ -26,3 +27,4 @@ router.use('/housing', housingRouter);
 router.use('/garage', garageRouter);
 router.use('/collectibles', shopRouter);
 router.use('/sports', sportsRouter);
+router.use('/business', businessRouter);

@@ -263,6 +263,25 @@ export function useGame() {
   const sportsNegotiate    = useCallback(() => runAction(api.sportsNegotiate), [runAction]);
   const sportsRequestTransfer = useCallback(() => runAction(api.sportsRequestTransfer), [runAction]);
   const sportsRetire       = useCallback(() => runAction(api.sportsRetire), [runAction]);
+  const businessCreate     = useCallback((input: { industry: string; name: string; logo: string; brandColor: string; hqCountry: string; investment: number }) => runAction((id) => api.businessCreate(id, input)), [runAction]);
+  const businessLaunchProduct = useCallback((key: string) => runAction((id) => api.businessLaunchProduct(id, key)), [runAction]);
+  const businessSetPrice   = useCallback((key: string, tier: string) => runAction((id) => api.businessSetPrice(id, key, tier)), [runAction]);
+  const businessImprove    = useCallback((key: string) => runAction((id) => api.businessImprove(id, key)), [runAction]);
+  const businessDiscontinue = useCallback((key: string) => runAction((id) => api.businessDiscontinue(id, key)), [runAction]);
+  const businessHire       = useCallback((role: string, count: number) => runAction((id) => api.businessHire(id, role, count)), [runAction]);
+  const businessFire       = useCallback((role: string, count: number) => runAction((id) => api.businessFire(id, role, count)), [runAction]);
+  const businessTrain      = useCallback((role: string) => runAction((id) => api.businessTrain(id, role)), [runAction]);
+  const businessBonus      = useCallback(() => runAction(api.businessBonus), [runAction]);
+  const businessSupplier   = useCallback((tier: number) => runAction((id) => api.businessSupplier(id, tier)), [runAction]);
+  const businessMarketing  = useCallback((level: number) => runAction((id) => api.businessMarketing(id, level)), [runAction]);
+  const businessRnd        = useCallback((level: number) => runAction((id) => api.businessRnd(id, level)), [runAction]);
+  const businessConsultantHire = useCallback((cid: string) => runAction((id) => api.businessConsultantHire(id, cid)), [runAction]);
+  const businessConsultantDrop = useCallback((cid: string) => runAction((id) => api.businessConsultantDrop(id, cid)), [runAction]);
+  const businessExpand     = useCallback((eid: string) => runAction((id) => api.businessExpand(id, eid)), [runAction]);
+  const businessInvest     = useCallback((amount: number) => runAction((id) => api.businessInvest(id, amount)), [runAction]);
+  const businessWithdraw   = useCallback((amount: number) => runAction((id) => api.businessWithdraw(id, amount)), [runAction]);
+  const businessSell       = useCallback(() => runAction(api.businessSell), [runAction]);
+  const businessClose      = useCallback(() => runAction(api.businessClose), [runAction]);
   const takeVacation       = useCallback((countryId: string, type: string, activityKey: string) => runAction((id) => api.takeVacation(id, countryId, type, activityKey)), [runAction]);
   const casinoBet          = useCallback((game: string, bet: number) => runAction((id) => api.casinoBet(id, game, bet)), [runAction]);
   const tryForBaby         = useCallback(() => runAction(api.tryForBaby), [runAction]);
@@ -341,6 +360,25 @@ export function useGame() {
     sportsNegotiate,
     sportsRequestTransfer,
     sportsRetire,
+    businessCreate,
+    businessLaunchProduct,
+    businessSetPrice,
+    businessImprove,
+    businessDiscontinue,
+    businessHire,
+    businessFire,
+    businessTrain,
+    businessBonus,
+    businessSupplier,
+    businessMarketing,
+    businessRnd,
+    businessConsultantHire,
+    businessConsultantDrop,
+    businessExpand,
+    businessInvest,
+    businessWithdraw,
+    businessSell,
+    businessClose,
     takeVacation,
     casinoBet,
     clearMessage,

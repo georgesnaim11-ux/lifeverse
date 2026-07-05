@@ -137,6 +137,46 @@ export const api = {
   sportsRetire: (characterId: string) =>
     post<{ characterId: string }, { message: string }>('/sports/retire', { characterId }),
 
+  // Business
+  businessCreate: (characterId: string, input: { industry: string; name: string; logo: string; brandColor: string; hqCountry: string; investment: number }) =>
+    post<object, { message: string }>('/business/create', { characterId, ...input }),
+  businessLaunchProduct: (characterId: string, key: string) =>
+    post<object, { message: string }>('/business/product/launch', { characterId, key }),
+  businessSetPrice: (characterId: string, key: string, tier: string) =>
+    post<object, { message: string }>('/business/product/price', { characterId, key, tier }),
+  businessImprove: (characterId: string, key: string) =>
+    post<object, { message: string }>('/business/product/improve', { characterId, key }),
+  businessDiscontinue: (characterId: string, key: string) =>
+    post<object, { message: string }>('/business/product/discontinue', { characterId, key }),
+  businessHire: (characterId: string, role: string, count: number) =>
+    post<object, { message: string }>('/business/staff/hire', { characterId, role, count }),
+  businessFire: (characterId: string, role: string, count: number) =>
+    post<object, { message: string }>('/business/staff/fire', { characterId, role, count }),
+  businessTrain: (characterId: string, role: string) =>
+    post<object, { message: string }>('/business/staff/train', { characterId, role }),
+  businessBonus: (characterId: string) =>
+    post<object, { message: string }>('/business/staff/bonus', { characterId }),
+  businessSupplier: (characterId: string, tier: number) =>
+    post<object, { message: string }>('/business/supplier', { characterId, tier }),
+  businessMarketing: (characterId: string, level: number) =>
+    post<object, { message: string }>('/business/marketing', { characterId, level }),
+  businessRnd: (characterId: string, level: number) =>
+    post<object, { message: string }>('/business/rnd', { characterId, level }),
+  businessConsultantHire: (characterId: string, id: string) =>
+    post<object, { message: string }>('/business/consultant/hire', { characterId, id }),
+  businessConsultantDrop: (characterId: string, id: string) =>
+    post<object, { message: string }>('/business/consultant/drop', { characterId, id }),
+  businessExpand: (characterId: string, id: string) =>
+    post<object, { message: string }>('/business/expand', { characterId, id }),
+  businessInvest: (characterId: string, amount: number) =>
+    post<object, { message: string }>('/business/invest', { characterId, amount }),
+  businessWithdraw: (characterId: string, amount: number) =>
+    post<object, { message: string }>('/business/withdraw', { characterId, amount }),
+  businessSell: (characterId: string) =>
+    post<object, { message: string }>('/business/sell', { characterId }),
+  businessClose: (characterId: string) =>
+    post<object, { message: string }>('/business/close', { characterId }),
+
   // Relationships / love
   findPartner: (characterId: string) =>
     post<{ characterId: string }, { message: string }>('/relationship/find-partner', { characterId }),

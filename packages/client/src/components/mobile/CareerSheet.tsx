@@ -1,16 +1,18 @@
 import { BottomSheet } from './BottomSheet';
-import type { JobState, JobEligibility } from '@lifeverse/shared';
+import type { JobState, JobEligibility, BusinessState } from '@lifeverse/shared';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   job: JobState | null;
   eligibleJobs: JobEligibility[];
+  business: BusinessState | null;
   isLoading: boolean;
   onApply: (jobId: string) => void;
   onPromote: () => void;
   onWorkHard: () => void;
   onQuit: () => void;
+  onOpenBusiness: () => void;
 }
 
 const CATEGORY_META: Record<string, { label: string; icon: string }> = {
@@ -29,11 +31,28 @@ function fmt(n: number): string {
 }
 
 export function CareerSheet({
-  isOpen, onClose, job, eligibleJobs, isLoading,
-  onApply, onPromote, onWorkHard, onQuit,
+  isOpen, onClose, job, eligibleJobs, business, isLoading,
+  onApply, onPromote, onWorkHard, onQuit, onOpenBusiness,
 }: Props): JSX.Element {
+  const hasCompany = business?.isOpen ?? false;
   return (
     <BottomSheet isOpen={isOpen} onClose={onClose} title="Career">
+      {/* Entrepreneurship — start or manage your own company */}
+      <div onClick={onOpenBusiness} style={{
+        background: hasCompany ? `linear-gradient(135deg, ${business!.brandColor}22, var(--card))` : 'var(--card)',
+        border: `1px solid ${hasCompany ? business!.brandColor : 'var(--accent-dim)'}`,
+        borderRadius: 14, padding: 14, marginTop: 4, marginBottom: 10, cursor: 'pointer',
+        display: 'flex', alignItems: 'center', gap: 10,
+      }}>
+        <span style={{ fontSize: 26 }}>{hasCompany ? business!.logo : '🏢'}</span>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 15, fontWeight: 800 }}>{hasCompany ? business!.name : 'Start a Business'}</div>
+          <div style={{ fontSize: 11, color: 'var(--muted)' }}>
+            {hasCompany ? `Valuation ${business!.valuation >= 1_000_000 ? `$${(business!.valuation / 1_000_000).toFixed(2)}M` : `$${Math.round(business!.valuation / 1000)}k`} · tap to manage` : 'Found a company and build an empire'}
+          </div>
+        </div>
+        <span style={{ fontSize: 14, color: 'var(--muted)' }}>›</span>
+      </div>
       {job ? (
         <div style={{ background: 'var(--card)', border: '1px solid var(--accent-dim)', borderRadius: 14, padding: 16, marginBottom: 6, marginTop: 4 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>

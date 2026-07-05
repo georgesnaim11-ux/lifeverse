@@ -46,6 +46,8 @@ export interface FinanceSummary {
   portfolioValue: number;
   /** Combined value of luxury collectibles (watches, jewelry, art, boats, aircraft). */
   collectiblesValue: number;
+  /** Value of the character's company (valuation while open). */
+  businessEquity: number;
 }
 
 /** A single dated moment in a character's life story. */

@@ -7,6 +7,7 @@ import { HousingService } from '../services/housing.service.js';
 import { GarageService } from '../services/garage.service.js';
 import { ShopService } from '../services/shop.service.js';
 import { SportsService } from '../services/sports.service.js';
+import { BusinessService } from '../services/business.service.js';
 import { LoanModel } from '../models/index.js';
 import {
   RelationshipsModel,
@@ -84,6 +85,7 @@ characterRouter.get('/:id', (req, res, next) => {
     const dealership = GarageService.getDealership(id);
     const collectibles = ShopService.getCollection(id);
     const sports = SportsService.get(id);
+    const business = BusinessService.get(id);
 
     res.json({
       data: {
@@ -91,7 +93,7 @@ characterRouter.get('/:id', (req, res, next) => {
         domains,
         job, eligibleJobs, ownedAssets, flags,
         loans, expenses, financeSummary, timeline,
-        housing, listings, properties, garage, dealership, collectibles, sports,
+        housing, listings, properties, garage, dealership, collectibles, sports, business,
       },
     });
   } catch (err) { next(err); }

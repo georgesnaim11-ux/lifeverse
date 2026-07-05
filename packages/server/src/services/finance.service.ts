@@ -1,4 +1,4 @@
-import { FinanceModel, AssetsModel, LoanModel, HousingModel, PropertyModel, VehicleModel, CollectibleModel } from '../models/index.js';
+import { FinanceModel, AssetsModel, LoanModel, HousingModel, PropertyModel, VehicleModel, CollectibleModel, BusinessModel } from '../models/index.js';
 import {
   LifeStage, LoanType, VEHICLE_REGISTRY, annualRentIncome,
 } from '@lifeverse/shared';
@@ -144,7 +144,9 @@ export const FinanceService = {
     }
     const collectiblesValue = CollectibleModel.findByCharacterId(characterId)
       .reduce((s, i) => s + i.currentValue, 0);
-    const totalAssets = cash + propertyValue + vehicleValue + collectiblesValue;
+    const biz = BusinessModel.findByCharacterId(characterId);
+    const businessEquity = biz && biz.isOpen ? biz.valuation : 0;
+    const totalAssets = cash + propertyValue + vehicleValue + collectiblesValue + businessEquity;
 
     const studentDebt = LoanModel.totalByType(characterId, LoanType.Student);
     const mortgageDebt = LoanModel.totalByType(characterId, LoanType.Mortgage);
@@ -155,7 +157,7 @@ export const FinanceService = {
       cash, propertyValue, vehicleValue, totalAssets,
       studentDebt, mortgageDebt, personalDebt, totalLiabilities,
       netWorth: totalAssets - totalLiabilities,
-      annualIncome, rentalIncome, portfolioValue: propertyValue, collectiblesValue,
+      annualIncome, rentalIncome, portfolioValue: propertyValue, collectiblesValue, businessEquity,
     };
   },
 

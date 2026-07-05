@@ -12,6 +12,7 @@ import type { Loan, ExpenseBreakdown, FinanceSummary, LifeSummary, TimelineEntry
 import type { HousingState, Listing, OwnedProperty } from './housing.js';
 import type { OwnedVehicle, VehicleListing } from './vehicles.js';
 import type { SportsCareerState } from './sports.js';
+import type { BusinessState } from './business.js';
 import type { OwnedCollectible } from './collectibles.js';
 import type { EducationRequirement, Major, PropertyType, VehicleType, WeddingTier } from './enums.js';
 
@@ -95,6 +96,8 @@ export interface GetCharacterResponse {
   collectibles: OwnedCollectible[];
   /** Athletic career (school team → pro club), or null if none. */
   sports: SportsCareerState | null;
+  /** The company the character runs, or null. */
+  business: BusinessState | null;
 }
 
 /** POST /api/game/age-up */
