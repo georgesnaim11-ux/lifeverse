@@ -1,4 +1,5 @@
 import { getDb } from '../db/index.js';
+import { PRODUCT_BY_KEY } from '@lifeverse/shared';
 import type {
   BusinessState, Industry, OwnedProduct, StaffBlock, StaffRole, BusinessYear,
 } from '@lifeverse/shared';
@@ -17,6 +18,7 @@ interface BusinessRow {
   market_share: number;
   branches: number;
   supplier_tier: number;
+  supplier_unlocked: number;
   marketing_level: number;
   rnd_level: number;
   products: string;
@@ -31,6 +33,31 @@ interface BusinessRow {
 
 function parse<T>(json: string, fallback: T): T {
   try { return JSON.parse(json) as T; } catch { return fallback; }
+}
+
+/** Backfill products from pre-rebalance saves (priceTier → price/marketing/inventory). */
+function normalizeProducts(raw: unknown): OwnedProduct[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((r) => {
+    const p = r as Record<string, unknown>;
+    const def = PRODUCT_BY_KEY.get(String(p['key']));
+    const base = def?.basePrice ?? 1;
+    const unit = def?.unitCost ?? 0;
+    return {
+      key: String(p['key']),
+      quality: typeof p['quality'] === 'number' ? p['quality'] : 50,
+      price: typeof p['price'] === 'number' ? p['price'] : base,
+      marketingBudget: typeof p['marketingBudget'] === 'number' ? p['marketingBudget'] : 0,
+      productionCost: typeof p['productionCost'] === 'number' ? p['productionCost'] : unit,
+      satisfaction: typeof p['satisfaction'] === 'number' ? p['satisfaction'] : 50,
+      popularity: typeof p['popularity'] === 'number' ? p['popularity'] : 15,
+      unitsSold: typeof p['unitsSold'] === 'number' ? p['unitsSold'] : 0,
+      inventory: typeof p['inventory'] === 'number' ? p['inventory'] : 0,
+      revenue: typeof p['revenue'] === 'number' ? p['revenue'] : 0,
+      profit: typeof p['profit'] === 'number' ? p['profit'] : 0,
+      improveLevel: typeof p['improveLevel'] === 'number' ? p['improveLevel'] : 0,
+    };
+  });
 }
 
 /** Valuation = liquid assets + a growth-weighted multiple of recent profit. */
@@ -48,6 +75,9 @@ export function computeValuation(row: {
 
 function rowToState(row: BusinessRow): BusinessState {
   const history = parse<BusinessYear[]>(row.history, []);
+  const products = normalizeProducts(parse<unknown>(row.products, []));
+  const satisfaction = products.length
+    ? Math.round(products.reduce((s, p) => s + p.satisfaction, 0) / products.length) : 0;
   return {
     characterId: row.character_id,
     industry: row.industry as Industry,
@@ -62,9 +92,11 @@ function rowToState(row: BusinessRow): BusinessState {
     marketShare: row.market_share,
     branches: row.branches,
     supplierTier: row.supplier_tier,
+    supplierUnlocked: row.supplier_unlocked ?? 2,
     marketingLevel: row.marketing_level,
     rndLevel: row.rnd_level,
-    products: parse<OwnedProduct[]>(row.products, []),
+    satisfaction,
+    products,
     staff: parse<Partial<Record<StaffRole, StaffBlock>>>(row.staff, {}),
     consultants: parse<string[]>(row.consultants, []),
     upgrades: parse<string[]>(row.upgrades, []),
@@ -109,6 +141,7 @@ export const BusinessModel = {
       industry: 'industry', name: 'name', logo: 'logo', brandColor: 'brand_color', hqCountry: 'hq_country',
       foundedAge: 'founded_age', cash: 'cash', reputation: 'reputation', customers: 'customers',
       marketShare: 'market_share', branches: 'branches', supplierTier: 'supplier_tier',
+      supplierUnlocked: 'supplier_unlocked',
       marketingLevel: 'marketing_level', rndLevel: 'rnd_level', lastEvent: 'last_event',
       lossYears: 'loss_years', isOpen: 'is_open',
     };

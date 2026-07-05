@@ -71,19 +71,21 @@ interface Props {
   onSportsRetire: () => void;
   onBusinessCreate: (input: { industry: string; name: string; logo: string; brandColor: string; hqCountry: string; investment: number }) => void;
   onBusinessLaunchProduct: (key: string) => void;
-  onBusinessSetPrice: (key: string, tier: string) => void;
+  onBusinessSetPrice: (key: string, price: number) => void;
+  onBusinessSetProductMarketing: (key: string, budget: number) => void;
   onBusinessImprove: (key: string) => void;
   onBusinessDiscontinue: (key: string) => void;
   onBusinessHire: (role: string, count: number) => void;
   onBusinessFire: (role: string, count: number) => void;
   onBusinessTrain: (role: string) => void;
   onBusinessBonus: () => void;
+  onBusinessTeamBuilding: (id: string) => void;
   onBusinessSupplier: (tier: number) => void;
-  onBusinessMarketing: (level: number) => void;
-  onBusinessRnd: (level: number) => void;
+  onBusinessFindSupplier: () => void;
   onBusinessConsultantHire: (id: string) => void;
   onBusinessConsultantDrop: (id: string) => void;
   onBusinessExpand: (id: string) => void;
+  onBusinessExpandLocations: (count: number) => void;
   onBusinessInvest: (amount: number) => void;
   onBusinessWithdraw: (amount: number) => void;
   onBusinessSell: () => void;
@@ -156,10 +158,11 @@ export function MobileGameLayout(props: Props): JSX.Element {
     onBuyCollectible, onSellCollectible,
     onSportsTryout, onSportsDecide, onSportsQuit, onSportsAcceptOffer, onSportsRejectOffer,
     onSportsNegotiate, onSportsRequestTransfer, onSportsRetire,
-    onBusinessCreate, onBusinessLaunchProduct, onBusinessSetPrice, onBusinessImprove, onBusinessDiscontinue,
-    onBusinessHire, onBusinessFire, onBusinessTrain, onBusinessBonus, onBusinessSupplier,
-    onBusinessMarketing, onBusinessRnd, onBusinessConsultantHire, onBusinessConsultantDrop,
-    onBusinessExpand, onBusinessInvest, onBusinessWithdraw, onBusinessSell,
+    onBusinessCreate, onBusinessLaunchProduct, onBusinessSetPrice, onBusinessSetProductMarketing,
+    onBusinessImprove, onBusinessDiscontinue,
+    onBusinessHire, onBusinessFire, onBusinessTrain, onBusinessBonus, onBusinessTeamBuilding,
+    onBusinessSupplier, onBusinessFindSupplier, onBusinessConsultantHire, onBusinessConsultantDrop,
+    onBusinessExpand, onBusinessExpandLocations, onBusinessInvest, onBusinessWithdraw, onBusinessSell,
     onRentProperty, onBuyHome, onSellProperty, onSetResidence, onToggleRentOut, onMoveInParents,
     onFindPartner, onGoOnDate, onPropose, onPlanWedding, onDelayWedding, onCancelEngagement, onBreakUp,
     onTryForBaby, onToggleBirthControl, onDivorce,
@@ -410,11 +413,14 @@ export function MobileGameLayout(props: Props): JSX.Element {
       <CareerSheet isOpen={sheet === 'career'} onClose={closeSheet} job={job} eligibleJobs={eligibleJobs} business={business} isLoading={isLoading} onApply={onApplyJob} onPromote={onPromote} onWorkHard={onWorkHard} onQuit={onQuitJob} onOpenBusiness={() => setSheet('business')} />
       <BusinessSheet isOpen={sheet === 'business'} onClose={closeSheet} business={business} age={character.age} playerCash={finance.cash} isLoading={isLoading}
         onCreate={onBusinessCreate} onLaunchProduct={onBusinessLaunchProduct} onSetPrice={onBusinessSetPrice}
+        onSetProductMarketing={onBusinessSetProductMarketing}
         onImprove={onBusinessImprove} onDiscontinue={onBusinessDiscontinue}
         onHire={onBusinessHire} onFire={onBusinessFire} onTrain={onBusinessTrain} onBonus={onBusinessBonus}
-        onSupplier={onBusinessSupplier} onMarketing={onBusinessMarketing} onRnd={onBusinessRnd}
+        onTeamBuilding={onBusinessTeamBuilding}
+        onSupplier={onBusinessSupplier} onFindSupplier={onBusinessFindSupplier}
         onConsultantHire={onBusinessConsultantHire} onConsultantDrop={onBusinessConsultantDrop}
-        onExpand={onBusinessExpand} onInvest={onBusinessInvest} onWithdraw={onBusinessWithdraw} onSell={onBusinessSell} />
+        onExpand={onBusinessExpand} onExpandLocations={onBusinessExpandLocations}
+        onInvest={onBusinessInvest} onWithdraw={onBusinessWithdraw} onSell={onBusinessSell} />
       <EducationSheet isOpen={sheet === 'education'} onClose={closeSheet} charState={charState} education={fullData.education} flags={flags} isLoading={isLoading} onEnroll={onEnroll} onStudy={onStudy} onAttendClass={onAttendClass} onTakeExam={onTakeExam} />
       <HousingSheet isOpen={sheet === 'shopping'} onClose={closeSheet} housing={housing} listings={listings} properties={properties}
         finance={finance} age={character.age} hasLivingParents={hasLivingParents} isLoading={isLoading}

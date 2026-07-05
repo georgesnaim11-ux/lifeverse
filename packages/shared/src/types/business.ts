@@ -59,6 +59,13 @@ export interface IndustryDef {
   employeeRequirement: number;
   /** Typical years until first profit. */
   yearsToProfit: number;
+  /** How much ad spend moves sales (0-100). Derived from category if omitted.
+   *  Read via marketingEffectiveness() so all industries get a value. */
+  marketingEffectiveness?: number;
+  /** Staff needed to fully run one branch/location. Derived if omitted. */
+  locationEmployees?: number;
+  /** Cost to open the first extra location. Derived from startupCost if omitted. */
+  baseLocationCost?: number;
   pros: string[];
   cons: string[];
 }
@@ -76,24 +83,25 @@ export interface ProductDef {
   tier: number;
 }
 
-/** Price positioning for an owned product. */
-export const PriceTier = {
-  Budget: 'budget',
-  Standard: 'standard',
-  Premium: 'premium',
-} as const;
-export type PriceTier = (typeof PriceTier)[keyof typeof PriceTier];
-
-/** A product the company sells. */
+/** A product the company sells. Every field is a real, configurable lever. */
 export interface OwnedProduct {
   key: string;
   quality: number;         // 0-100
-  priceTier: PriceTier;
+  /** Absolute selling price ($), freely set by the player. Defaults to basePrice. */
+  price: number;
+  /** Annual advertising spend dedicated to this product. */
+  marketingBudget: number;
+  /** Per-unit production cost, derived from supplier + improvements. */
+  productionCost: number;
   satisfaction: number;    // 0-100
   popularity: number;      // 0-100
   unitsSold: number;       // last year
+  /** Unsold stock carried over (unmet capacity / overproduction). */
+  inventory: number;
   revenue: number;         // last year
   profit: number;          // last year
+  /** How many times R&D-improved (raises quality and production cost). */
+  improveLevel: number;
 }
 
 /** Staff roles (aggregate model: count + skill + morale per role). */
@@ -119,11 +127,35 @@ export interface StaffBlock {
 }
 
 export interface SupplierTierDef {
-  tier: number;               // 1-3
+  tier: number;               // 1-6, ascending cost/quality/capacity
   label: string;
   costMultiplier: number;     // on unit costs
   qualityBonus: number;       // added to product quality effect
   reliability: number;        // 0-1, mitigates supply events
+  /** Max units per year this supplier can deliver (across all products). */
+  capacity: number;
+}
+
+/** A morale-boosting team activity. */
+export interface TeamBuildingDef {
+  id: string;
+  label: string;
+  emoji: string;
+  /** Per-employee cost. */
+  costPerHead: number;
+  moraleGain: number;
+  note: string;
+}
+
+/** Slider preview for opening N new locations. */
+export interface ExpansionQuote {
+  count: number;
+  totalCost: number;
+  employeesRequired: number;   // total staff needed after expanding
+  employeesShort: number;      // 0 if you already have enough
+  expectedRevenueDelta: number;
+  expectedOpexDelta: number;
+  roiPct: number;              // annual return on the expansion outlay
 }
 
 export interface ConsultantDef {
@@ -181,8 +213,12 @@ export interface BusinessState {
   marketShare: number;
   branches: number;
   supplierTier: number;
+  /** Highest supplier tier discovered (via Find Better Supplier). */
+  supplierUnlocked: number;
   marketingLevel: number;
   rndLevel: number;
+  /** Latest simulated customer satisfaction (0-100, avg across products). */
+  satisfaction: number;
   products: OwnedProduct[];
   staff: Partial<Record<StaffRole, StaffBlock>>;
   consultants: string[];

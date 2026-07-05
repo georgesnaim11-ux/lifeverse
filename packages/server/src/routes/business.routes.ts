@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { BusinessService } from '../services/business.service.js';
-import { Industry, StaffRole, PriceTier } from '@lifeverse/shared';
+import { Industry, StaffRole } from '@lifeverse/shared';
 
 export const businessRouter = Router();
 
@@ -19,12 +19,13 @@ const CreateSchema = z.object({
   investment: z.number().int().positive().max(1_000_000_000),
 });
 const KeySchema = z.object({ characterId: z.string().uuid(), key: z.string().min(1) });
-const PriceSchema = z.object({ characterId: z.string().uuid(), key: z.string().min(1), tier: z.nativeEnum(PriceTier) });
-const StaffSchema = z.object({ characterId: z.string().uuid(), role: z.nativeEnum(StaffRole), count: z.number().int().min(1).max(1000) });
+const PriceSchema = z.object({ characterId: z.string().uuid(), key: z.string().min(1), price: z.number().positive().max(1_000_000_000) });
+const MarketingSchema = z.object({ characterId: z.string().uuid(), key: z.string().min(1), budget: z.number().min(0).max(5_000_000_000) });
+const StaffSchema = z.object({ characterId: z.string().uuid(), role: z.nativeEnum(StaffRole), count: z.number().int().min(1).max(5000) });
 const RoleSchema = z.object({ characterId: z.string().uuid(), role: z.nativeEnum(StaffRole) });
-const LevelSchema = z.object({ characterId: z.string().uuid(), level: z.number().int().min(0).max(3) });
-const TierSchema = z.object({ characterId: z.string().uuid(), tier: z.number().int().min(1).max(3) });
+const TierSchema = z.object({ characterId: z.string().uuid(), tier: z.number().int().min(1).max(6) });
 const IdSchema = z.object({ characterId: z.string().uuid(), id: z.string().min(1) });
+const CountSchema = z.object({ characterId: z.string().uuid(), count: z.number().int().min(1).max(50) });
 const AmountSchema = z.object({ characterId: z.string().uuid(), amount: z.number().int().positive().max(10_000_000_000) });
 const ActionSchema = z.object({ characterId: z.string().uuid() });
 
@@ -42,7 +43,11 @@ businessRouter.post('/product/launch', (req, res, next) => {
 });
 businessRouter.post('/product/price', (req, res, next) => {
   try { const p = PriceSchema.safeParse(req.body); if (!p.success) return bad(res);
-    res.json({ data: BusinessService.setProductPrice(p.data.characterId, p.data.key, p.data.tier) }); } catch (err) { next(err); }
+    res.json({ data: BusinessService.setProductPrice(p.data.characterId, p.data.key, p.data.price) }); } catch (err) { next(err); }
+});
+businessRouter.post('/product/marketing', (req, res, next) => {
+  try { const p = MarketingSchema.safeParse(req.body); if (!p.success) return bad(res);
+    res.json({ data: BusinessService.setProductMarketing(p.data.characterId, p.data.key, p.data.budget) }); } catch (err) { next(err); }
 });
 businessRouter.post('/product/improve', (req, res, next) => {
   try { const p = KeySchema.safeParse(req.body); if (!p.success) return bad(res);
@@ -69,18 +74,18 @@ businessRouter.post('/staff/bonus', (req, res, next) => {
   try { const p = ActionSchema.safeParse(req.body); if (!p.success) return bad(res);
     res.json({ data: BusinessService.raiseSalaries(p.data.characterId) }); } catch (err) { next(err); }
 });
+businessRouter.post('/staff/team-building', (req, res, next) => {
+  try { const p = IdSchema.safeParse(req.body); if (!p.success) return bad(res);
+    res.json({ data: BusinessService.teamBuilding(p.data.characterId, p.data.id) }); } catch (err) { next(err); }
+});
 
 businessRouter.post('/supplier', (req, res, next) => {
   try { const p = TierSchema.safeParse(req.body); if (!p.success) return bad(res);
     res.json({ data: BusinessService.setSupplier(p.data.characterId, p.data.tier) }); } catch (err) { next(err); }
 });
-businessRouter.post('/marketing', (req, res, next) => {
-  try { const p = LevelSchema.safeParse(req.body); if (!p.success) return bad(res);
-    res.json({ data: BusinessService.setMarketing(p.data.characterId, p.data.level) }); } catch (err) { next(err); }
-});
-businessRouter.post('/rnd', (req, res, next) => {
-  try { const p = LevelSchema.safeParse(req.body); if (!p.success) return bad(res);
-    res.json({ data: BusinessService.setRnd(p.data.characterId, p.data.level) }); } catch (err) { next(err); }
+businessRouter.post('/supplier/find', (req, res, next) => {
+  try { const p = ActionSchema.safeParse(req.body); if (!p.success) return bad(res);
+    res.json({ data: BusinessService.findBetterSupplier(p.data.characterId) }); } catch (err) { next(err); }
 });
 businessRouter.post('/consultant/hire', (req, res, next) => {
   try { const p = IdSchema.safeParse(req.body); if (!p.success) return bad(res);
@@ -93,6 +98,10 @@ businessRouter.post('/consultant/drop', (req, res, next) => {
 businessRouter.post('/expand', (req, res, next) => {
   try { const p = IdSchema.safeParse(req.body); if (!p.success) return bad(res);
     res.json({ data: BusinessService.expand(p.data.characterId, p.data.id) }); } catch (err) { next(err); }
+});
+businessRouter.post('/expand-locations', (req, res, next) => {
+  try { const p = CountSchema.safeParse(req.body); if (!p.success) return bad(res);
+    res.json({ data: BusinessService.expandLocations(p.data.characterId, p.data.count) }); } catch (err) { next(err); }
 });
 businessRouter.post('/invest', (req, res, next) => {
   try { const p = AmountSchema.safeParse(req.body); if (!p.success) return bad(res);

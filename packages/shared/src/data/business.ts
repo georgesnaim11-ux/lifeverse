@@ -1,9 +1,9 @@
 import {
-  Industry, IndustryCategory, StaffRole, PriceTier,
+  Industry, IndustryCategory, StaffRole,
 } from '../types/business.js';
 import type {
   IndustryDef, ProductDef, SupplierTierDef, ConsultantDef, ExpansionDef,
-  BusinessEventDef, StaffRole as Role, PriceTier as PriceTierType,
+  BusinessEventDef, TeamBuildingDef, ExpansionQuote, StaffRole as Role,
 } from '../types/business.js';
 
 /** Minimum age to register a company. */
@@ -27,14 +27,12 @@ export const STAFF_ROLE_LABELS: Record<Role, string> = {
   [StaffRole.Finance]: 'Finance', [StaffRole.Support]: 'Customer Support', [StaffRole.FactoryWorker]: 'Factory Workers',
   [StaffRole.Executive]: 'Executives', [StaffRole.Intern]: 'Interns',
 };
-/** Marketing / R&D level costs per year (index = level 0-3). */
-export const MARKETING_COSTS = [0, 12000, 60000, 300000];
-export const RND_COSTS = [0, 20000, 100000, 500000];
-export const PRICE_TIER_DATA: Record<PriceTierType, { label: string; priceMult: number; volumeMult: number }> = {
-  [PriceTier.Budget]:   { label: 'Budget',   priceMult: 0.75, volumeMult: 1.35 },
-  [PriceTier.Standard]: { label: 'Standard', priceMult: 1.0,  volumeMult: 1.0 },
-  [PriceTier.Premium]:  { label: 'Premium',  priceMult: 1.45, volumeMult: 0.62 },
-};
+/** Fee to search out a higher-capacity supplier (unlock the next tier). */
+export const SUPPLIER_SEARCH_FEE = 15000;
+/** Small businesses pay small-business wages; giants pay corporate rates. */
+export function salaryScale(employeeRequirement: number): number {
+  return 0.3 + employeeRequirement / 200;
+}
 
 /* ───────────────────────── Industries ───────────────────────── */
 
@@ -225,11 +223,28 @@ export function productsForIndustry(industry: Industry): ProductDef[] {
 
 /* ─────────────── Suppliers / consultants / expansions / events ─────────────── */
 
+// Six suppliers on a real ladder: cheaper ones cap your output, dearer ones
+// lift quality AND capacity so a growing company must trade up or stall.
 export const SUPPLIER_TIERS: SupplierTierDef[] = [
-  { tier: 1, label: 'Budget Suppliers',   costMultiplier: 0.8, qualityBonus: -8, reliability: 0.7 },
-  { tier: 2, label: 'Standard Suppliers', costMultiplier: 1.0, qualityBonus: 0,  reliability: 0.9 },
-  { tier: 3, label: 'Premium Suppliers',  costMultiplier: 1.3, qualityBonus: 10, reliability: 0.99 },
+  { tier: 1, label: 'Local Budget Supplier',   costMultiplier: 0.78, qualityBonus: -12, reliability: 0.70, capacity: 20_000 },
+  { tier: 2, label: 'Regional Supplier',       costMultiplier: 0.92, qualityBonus: -4,  reliability: 0.85, capacity: 80_000 },
+  { tier: 3, label: 'National Supplier',       costMultiplier: 1.05, qualityBonus: 4,   reliability: 0.92, capacity: 300_000 },
+  { tier: 4, label: 'Premium Supplier',        costMultiplier: 1.22, qualityBonus: 10,  reliability: 0.97, capacity: 1_200_000 },
+  { tier: 5, label: 'Global Supply Network',   costMultiplier: 1.40, qualityBonus: 16,  reliability: 0.99, capacity: 6_000_000 },
+  { tier: 6, label: 'Vertically Integrated',   costMultiplier: 1.15, qualityBonus: 22,  reliability: 0.995, capacity: 50_000_000 },
 ];
+export const SUPPLIER_BY_TIER = new Map<number, SupplierTierDef>(SUPPLIER_TIERS.map((s) => [s.tier, s]));
+export const MAX_SUPPLIER_TIER = SUPPLIER_TIERS.length;
+
+/** Morale-boosting team activities. Cost scales with headcount. */
+export const TEAM_BUILDING: TeamBuildingDef[] = [
+  { id: 'dinner',   label: 'Company Dinner',   emoji: '🍽️', costPerHead: 120,  moraleGain: 5,  note: 'A nice night out — a small, cheap lift.' },
+  { id: 'party',    label: 'Holiday Party',    emoji: '🎉', costPerHead: 250,  moraleGain: 9,  note: 'End-of-year celebration everyone remembers.' },
+  { id: 'training', label: 'Training Event',   emoji: '📚', costPerHead: 400,  moraleGain: 7,  note: 'Morale + a little skill across the company.' },
+  { id: 'bonus',    label: 'Surprise Bonuses', emoji: '💵', costPerHead: 1500, moraleGain: 16, note: 'Cash talks — the biggest morale jump.' },
+  { id: 'retreat',  label: 'Company Retreat',  emoji: '🏝️', costPerHead: 2200, moraleGain: 20, note: 'A getaway that resets and re-energizes the team.' },
+];
+export const TEAM_BUILDING_BY_ID = new Map<string, TeamBuildingDef>(TEAM_BUILDING.map((t) => [t.id, t]));
 
 export const CONSULTANTS: ConsultantDef[] = [
   { id: 'finance',   label: 'Finance Consultant',       emoji: '📊', annualFee: 40000,  description: 'Trims operating expenses by ~8%.' },
@@ -242,8 +257,9 @@ export const CONSULTANTS: ConsultantDef[] = [
 ];
 export const CONSULTANT_BY_ID = new Map<string, ConsultantDef>(CONSULTANTS.map((c) => [c.id, c]));
 
+// One-off strategic upgrades. Opening locations is handled separately by the
+// expansion slider (see expansionQuote / expandLocations).
 export const EXPANSIONS: ExpansionDef[] = [
-  { id: 'branch',        label: 'Open New Branch',       emoji: '🏪', cost: 0,        minReputation: 35, minBranches: 0, repeatable: true,  description: 'Cost scales with your industry; each branch multiplies reach.' },
   { id: 'warehouse',     label: 'Open Warehouse',        emoji: '📦', cost: 250000,   minReputation: 40, minBranches: 2, repeatable: false, description: 'Cuts logistics costs and supply-shortage damage.' },
   { id: 'factory',       label: 'Build Factory',         emoji: '🏭', cost: 2000000,  minReputation: 45, minBranches: 2, repeatable: false, description: 'Slashes unit costs for manufactured goods.' },
   { id: 'international', label: 'Expand Internationally',emoji: '🌍', cost: 1500000,  minReputation: 60, minBranches: 3, repeatable: false, description: 'Opens global demand — a big revenue multiplier.' },
@@ -267,3 +283,104 @@ export const BUSINESS_EVENTS: BusinessEventDef[] = [
   { id: 'new_competitor', label: 'Aggressive new competitor', emoji: '🥊', weight: 2, good: false },
   { id: 'acquisition_offer', label: 'Acquisition interest',  emoji: '🤝', weight: 1, good: true },
 ];
+
+/* ─────────────── Pure economic helpers (shared by sim + client previews) ─────────────── */
+
+const clampN = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n));
+
+/** Total dollar market a product competes for, per branch. Bigger industries, bigger markets. */
+export function industryMarketSize(ind: IndustryDef): number {
+  return 70000 + ind.startupCost * 1.1;
+}
+
+/** How much advertising moves sales (0-100). Derived from category when not set. */
+export function marketingEffectiveness(ind: IndustryDef): number {
+  if (ind.marketingEffectiveness !== undefined) return ind.marketingEffectiveness;
+  const byCat: Record<IndustryCategory, number> = {
+    [IndustryCategory.Food]: 55, [IndustryCategory.Fashion]: 80, [IndustryCategory.Technology]: 82,
+    [IndustryCategory.Automotive]: 45, [IndustryCategory.Property]: 32, [IndustryCategory.Hospitality]: 62,
+  };
+  return byCat[ind.category];
+}
+
+/** Staff needed to fully run one location. Scales with staff-hunger and industry size. */
+export function locationEmployees(ind: IndustryDef): number {
+  if (ind.locationEmployees !== undefined) return ind.locationEmployees;
+  const sizeFactor = Math.max(1, Math.log10(ind.startupCost / 10000));
+  return Math.max(3, Math.round((ind.employeeRequirement / 6) * sizeFactor));
+}
+
+/** Cost of the first extra location. Derived from startup cost when not set. */
+export function baseLocationCost(ind: IndustryDef): number {
+  return ind.baseLocationCost ?? Math.round(ind.startupCost * 0.6);
+}
+
+/** Cost of one location, escalating as the company already has more branches.
+ *  `index` is the 0-based offset within a batch being opened at once. */
+export function locationCost(ind: IndustryDef, currentBranches: number, index = 0): number {
+  return Math.round(baseLocationCost(ind) * Math.pow(1.25, Math.max(0, currentBranches - 1 + index)));
+}
+
+/**
+ * Demand response to price. Returns a multiplier on nominal demand.
+ * There's a "sweet spot" price ratio that rises with quality + reputation and falls
+ * with competition; price below it lifts demand (>1), above it crushes demand (<1).
+ */
+export function priceAppeal(
+  price: number, def: ProductDef, qualityEff: number, reputation: number, competition: number,
+): number {
+  const ratio = price / def.basePrice;
+  const sweetSpot = 0.75 + qualityEff / 300 + reputation / 300 - competition / 500;
+  const elasticity = 1.1 + competition / 200;
+  return clampN(1 - (ratio - sweetSpot) * elasticity, 0.04, 1.7);
+}
+
+/** The price ratio (× basePrice) where demand is "fair" — the revenue sweet spot. */
+export function optimalPrice(def: ProductDef, qualityEff: number, reputation: number, competition: number): number {
+  const sweetSpot = 0.75 + qualityEff / 300 + reputation / 300 - competition / 500;
+  // A touch above the fairness point maximizes revenue (price × appeal).
+  return Math.round(def.basePrice * (sweetSpot + 0.15) * 100) / 100;
+}
+
+/** Advertising multiplier on demand — diminishing returns, industry-dependent. */
+export function marketingMultiplier(budget: number, ind: IndustryDef): number {
+  if (budget <= 0) return 1;
+  const eff = marketingEffectiveness(ind) / 100;
+  const ref = Math.max(5000, industryMarketSize(ind) * 0.02);
+  return 1 + eff * Math.sqrt(budget / ref);
+}
+
+/**
+ * Uncapped annual units for one product given the shared yearly demand base.
+ * `demandBase` folds in industry demand, reputation, branches, productivity and noise;
+ * it's computed once per sim year and passed here so client hints match the server.
+ */
+export function estimateProductUnits(
+  def: ProductDef,
+  product: { quality: number; price: number; popularity: number; marketingBudget: number },
+  ctx: { industry: IndustryDef; reputation: number; demandBase: number; supplierQualityBonus: number },
+): number {
+  const qualityEff = clampN(product.quality + ctx.supplierQualityBonus, 1, 100);
+  const appeal = priceAppeal(product.price, def, qualityEff, ctx.reputation, ctx.industry.competition);
+  const mkt = marketingMultiplier(product.marketingBudget, ctx.industry);
+  const productMarket = industryMarketSize(ctx.industry) / Math.pow(def.tier, 1.4) *
+    ctx.demandBase * (0.4 + qualityEff / 120) * (0.6 + product.popularity / 150) * appeal * mkt;
+  return Math.max(0, Math.round(productMarket / Math.max(0.01, product.price)));
+}
+
+/** Preview for opening `count` new locations at once. Pure — client & server agree. */
+export function expansionQuote(
+  ind: IndustryDef, branches: number, count: number, staffTotal: number,
+  perBranchRevenue: number, perBranchOpex: number,
+): ExpansionQuote {
+  let totalCost = 0;
+  for (let i = 0; i < count; i++) totalCost += locationCost(ind, branches, i);
+  const perLoc = locationEmployees(ind);
+  const employeesRequired = perLoc * (branches + count);
+  const employeesShort = Math.max(0, employeesRequired - staffTotal);
+  const expectedRevenueDelta = Math.round(perBranchRevenue * count);
+  const expectedOpexDelta = Math.round(perBranchOpex * count);
+  const annualGain = expectedRevenueDelta - expectedOpexDelta;
+  const roiPct = totalCost > 0 ? Math.round((annualGain / totalCost) * 100) : 0;
+  return { count, totalCost, employeesRequired, employeesShort, expectedRevenueDelta, expectedOpexDelta, roiPct };
+}

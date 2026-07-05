@@ -265,19 +265,21 @@ export function useGame() {
   const sportsRetire       = useCallback(() => runAction(api.sportsRetire), [runAction]);
   const businessCreate     = useCallback((input: { industry: string; name: string; logo: string; brandColor: string; hqCountry: string; investment: number }) => runAction((id) => api.businessCreate(id, input)), [runAction]);
   const businessLaunchProduct = useCallback((key: string) => runAction((id) => api.businessLaunchProduct(id, key)), [runAction]);
-  const businessSetPrice   = useCallback((key: string, tier: string) => runAction((id) => api.businessSetPrice(id, key, tier)), [runAction]);
+  const businessSetPrice   = useCallback((key: string, price: number) => runAction((id) => api.businessSetPrice(id, key, price)), [runAction]);
+  const businessSetProductMarketing = useCallback((key: string, budget: number) => runAction((id) => api.businessSetProductMarketing(id, key, budget)), [runAction]);
   const businessImprove    = useCallback((key: string) => runAction((id) => api.businessImprove(id, key)), [runAction]);
   const businessDiscontinue = useCallback((key: string) => runAction((id) => api.businessDiscontinue(id, key)), [runAction]);
   const businessHire       = useCallback((role: string, count: number) => runAction((id) => api.businessHire(id, role, count)), [runAction]);
   const businessFire       = useCallback((role: string, count: number) => runAction((id) => api.businessFire(id, role, count)), [runAction]);
   const businessTrain      = useCallback((role: string) => runAction((id) => api.businessTrain(id, role)), [runAction]);
   const businessBonus      = useCallback(() => runAction(api.businessBonus), [runAction]);
+  const businessTeamBuilding = useCallback((tid: string) => runAction((id) => api.businessTeamBuilding(id, tid)), [runAction]);
   const businessSupplier   = useCallback((tier: number) => runAction((id) => api.businessSupplier(id, tier)), [runAction]);
-  const businessMarketing  = useCallback((level: number) => runAction((id) => api.businessMarketing(id, level)), [runAction]);
-  const businessRnd        = useCallback((level: number) => runAction((id) => api.businessRnd(id, level)), [runAction]);
+  const businessFindSupplier = useCallback(() => runAction(api.businessFindSupplier), [runAction]);
   const businessConsultantHire = useCallback((cid: string) => runAction((id) => api.businessConsultantHire(id, cid)), [runAction]);
   const businessConsultantDrop = useCallback((cid: string) => runAction((id) => api.businessConsultantDrop(id, cid)), [runAction]);
   const businessExpand     = useCallback((eid: string) => runAction((id) => api.businessExpand(id, eid)), [runAction]);
+  const businessExpandLocations = useCallback((count: number) => runAction((id) => api.businessExpandLocations(id, count)), [runAction]);
   const businessInvest     = useCallback((amount: number) => runAction((id) => api.businessInvest(id, amount)), [runAction]);
   const businessWithdraw   = useCallback((amount: number) => runAction((id) => api.businessWithdraw(id, amount)), [runAction]);
   const businessSell       = useCallback(() => runAction(api.businessSell), [runAction]);
@@ -363,18 +365,20 @@ export function useGame() {
     businessCreate,
     businessLaunchProduct,
     businessSetPrice,
+    businessSetProductMarketing,
     businessImprove,
     businessDiscontinue,
     businessHire,
     businessFire,
     businessTrain,
     businessBonus,
+    businessTeamBuilding,
     businessSupplier,
-    businessMarketing,
-    businessRnd,
+    businessFindSupplier,
     businessConsultantHire,
     businessConsultantDrop,
     businessExpand,
+    businessExpandLocations,
     businessInvest,
     businessWithdraw,
     businessSell,

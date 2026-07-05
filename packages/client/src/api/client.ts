@@ -142,8 +142,10 @@ export const api = {
     post<object, { message: string }>('/business/create', { characterId, ...input }),
   businessLaunchProduct: (characterId: string, key: string) =>
     post<object, { message: string }>('/business/product/launch', { characterId, key }),
-  businessSetPrice: (characterId: string, key: string, tier: string) =>
-    post<object, { message: string }>('/business/product/price', { characterId, key, tier }),
+  businessSetPrice: (characterId: string, key: string, price: number) =>
+    post<object, { message: string }>('/business/product/price', { characterId, key, price }),
+  businessSetProductMarketing: (characterId: string, key: string, budget: number) =>
+    post<object, { message: string }>('/business/product/marketing', { characterId, key, budget }),
   businessImprove: (characterId: string, key: string) =>
     post<object, { message: string }>('/business/product/improve', { characterId, key }),
   businessDiscontinue: (characterId: string, key: string) =>
@@ -156,18 +158,20 @@ export const api = {
     post<object, { message: string }>('/business/staff/train', { characterId, role }),
   businessBonus: (characterId: string) =>
     post<object, { message: string }>('/business/staff/bonus', { characterId }),
+  businessTeamBuilding: (characterId: string, id: string) =>
+    post<object, { message: string }>('/business/staff/team-building', { characterId, id }),
   businessSupplier: (characterId: string, tier: number) =>
     post<object, { message: string }>('/business/supplier', { characterId, tier }),
-  businessMarketing: (characterId: string, level: number) =>
-    post<object, { message: string }>('/business/marketing', { characterId, level }),
-  businessRnd: (characterId: string, level: number) =>
-    post<object, { message: string }>('/business/rnd', { characterId, level }),
+  businessFindSupplier: (characterId: string) =>
+    post<object, { message: string }>('/business/supplier/find', { characterId }),
   businessConsultantHire: (characterId: string, id: string) =>
     post<object, { message: string }>('/business/consultant/hire', { characterId, id }),
   businessConsultantDrop: (characterId: string, id: string) =>
     post<object, { message: string }>('/business/consultant/drop', { characterId, id }),
   businessExpand: (characterId: string, id: string) =>
     post<object, { message: string }>('/business/expand', { characterId, id }),
+  businessExpandLocations: (characterId: string, count: number) =>
+    post<object, { message: string }>('/business/expand-locations', { characterId, count }),
   businessInvest: (characterId: string, amount: number) =>
     post<object, { message: string }>('/business/invest', { characterId, amount }),
   businessWithdraw: (characterId: string, amount: number) =>
