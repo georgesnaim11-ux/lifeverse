@@ -5,8 +5,8 @@ import {
   productsForIndustry, PRODUCT_BY_KEY, SUPPLIER_TIERS, SUPPLIER_BY_TIER, CONSULTANTS, EXPANSIONS,
   ROLE_SALARIES, STAFF_ROLE_LABELS, TEAM_BUILDING, SUPPLIER_SEARCH_FEE, MAX_SUPPLIER_TIER,
   BUSINESS_MIN_AGE, COUNTRIES,
-  priceAppeal, marketingMultiplier, optimalPrice, locationCost, locationEmployees,
-  expansionQuote,
+  priceAppeal, marketingMultiplier, marketingBudgetMax, optimalPrice, locationCost,
+  expansionQuote, staffingRequirement,
 } from '@lifeverse/shared';
 import type {
   BusinessState, Industry, IndustryDef, StaffRole as Role, StaffBlock, OwnedProduct,
@@ -111,7 +111,7 @@ function ProductCard(props: {
   const margin = price > 0 ? Math.round(((price - p.productionCost) / price) * 100) : 0;
   const improveCost = Math.max(1000, Math.round(def.devCost * 0.25 * (1 + p.improveLevel * 0.5)));
   const priceMin = def.basePrice * 0.2, priceMax = def.basePrice * 4;
-  const budgetMax = Math.max(20000, Math.round(def.basePrice * 4000));
+  const budgetMax = marketingBudgetMax(ind);
   const demandWord = appeal >= 1.25 ? 'very high' : appeal >= 1.0 ? 'strong' : appeal >= 0.7 ? 'moderate' : appeal >= 0.4 ? 'weak' : 'almost none';
   const demandColor = appeal >= 1.0 ? 'var(--success)' : appeal >= 0.5 ? '#d1a935' : 'var(--danger)';
 
@@ -146,7 +146,7 @@ function ProductCard(props: {
         <span style={{ color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Marketing budget</span>
         <span style={{ fontWeight: 800 }}>{budget === 0 ? 'none' : `${money(budget)}/yr`}</span>
       </div>
-      <input type="range" min={0} max={budgetMax} step={Math.max(500, Math.round(budgetMax / 100))} value={Math.min(budget, budgetMax)}
+      <input type="range" min={0} max={budgetMax} step={Math.max(100, Math.round(budgetMax / 150))} value={Math.min(budget, budgetMax)}
         style={{ width: '100%', accentColor: brandColor }} disabled={isLoading}
         onChange={(e) => setBudget(Number(e.target.value))}
         onMouseUp={() => onSetMarketing(p.key, budget)} onTouchEnd={() => onSetMarketing(p.key, budget)} />
@@ -425,14 +425,19 @@ export function BusinessSheet(props: Props): JSX.Element {
                 </div>
               );
             })()}
-            {(Object.keys(STAFF_ROLE_LABELS) as Role[]).map((role) => {
+            {(() => { const req = staffingRequirement(ind!, b.branches); return (Object.keys(STAFF_ROLE_LABELS) as Role[]).map((role) => {
               const blk: StaffBlock = b.staff[role] ?? { count: 0, skill: 45, morale: 65 };
+              const need = req[role] ?? 0;
+              const understaffed = blk.count < need;
               return (
-                <div key={role} style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, padding: 10, marginBottom: 6 }}>
+                <div key={role} style={{ background: 'var(--card)', border: `1px solid ${understaffed ? 'var(--danger)' : 'var(--border)'}`, borderRadius: 12, padding: 10, marginBottom: 6 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: 800 }}>
-                    <span>{STAFF_ROLE_LABELS[role]} ({blk.count})</span>
+                    <span>{STAFF_ROLE_LABELS[role]} ({blk.count}{need > 0 ? `/${need}` : ''})</span>
                     <span style={{ color: 'var(--muted)', fontWeight: 600, fontSize: 11 }}>{fmt(ROLE_SALARIES[role])}/yr each</span>
                   </div>
+                  {need > 0 && understaffed && (
+                    <div style={{ fontSize: 10, color: 'var(--danger)', margin: '2px 0 0' }}>⚠ Need {need - blk.count} more for {b.branches} location{b.branches > 1 ? 's' : ''}</div>
+                  )}
                   {blk.count > 0 && (
                     <div style={{ fontSize: 10, color: 'var(--muted)', margin: '2px 0 6px' }}>skill {blk.skill} · morale {blk.morale}</div>
                   )}
@@ -444,7 +449,7 @@ export function BusinessSheet(props: Props): JSX.Element {
                   </div>
                 </div>
               );
-            })}
+            }); })()}
             <button className="lv-btn" style={{ ...miniBtn, marginTop: 6 }} disabled={isLoading} onClick={onBonus}>💝 Company-wide 5% bonus (+morale)</button>
             <div className="lv-cat-header"><span>🎉</span><span>Team Building</span></div>
             {TEAM_BUILDING.map((t) => {
@@ -513,16 +518,16 @@ export function BusinessSheet(props: Props): JSX.Element {
           const staffCnt = staffCount;
           const perBranchRev = b.branches > 0 && last ? last.revenue / b.branches : 0;
           const perBranchOpex = b.branches > 0 && last ? last.expenses / b.branches : 0;
-          const quote = expansionQuote(ind, b.branches, expandCount, staffCnt, perBranchRev, perBranchOpex);
-          const perLoc = locationEmployees(ind);
+          const quote = expansionQuote(ind, b.branches, expandCount, b.staff, perBranchRev, perBranchOpex);
+          const missing = Object.entries(quote.shortByRole) as Array<[Role, number]>;
           const nextCost = locationCost(ind, b.branches, 0);
           const cashShort = b.cash < quote.totalCost;
-          const canExpand = !isLoading && b.reputation >= 35 && !cashShort && quote.employeesShort === 0;
+          const canExpand = !isLoading && b.reputation >= 35 && !cashShort && missing.length === 0;
           return (
             <>
               <div className="lv-cat-header"><span>🏗️</span><span>Open New Locations</span></div>
               <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 8 }}>
-                Each {ind.label.toLowerCase()} location needs ~{perLoc} staff and costs more as you grow (next: {fmt(nextCost)}).
+                Every location needs a realistic mix of roles, and costs more as you grow (next: {fmt(nextCost)}).
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 700 }}>
                 <span>Locations to open</span><span style={{ color: b.brandColor }}>{expandCount}</span>
@@ -538,9 +543,27 @@ export function BusinessSheet(props: Props): JSX.Element {
                   <span style={{ color: 'var(--muted)' }}>Est. +expenses/yr</span><span style={{ textAlign: 'right', fontWeight: 700 }}>{fmt(quote.expectedOpexDelta)}</span>
                   <span style={{ color: 'var(--muted)' }}>Estimated ROI</span><span style={{ textAlign: 'right', fontWeight: 800, color: quote.roiPct >= 0 ? 'var(--success)' : 'var(--danger)' }}>{quote.roiPct}%/yr</span>
                 </div>
+                {/* Required role mix */}
+                <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)', display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                  {(Object.entries(quote.requiredByRole) as Array<[Role, number]>).map(([role, need]) => {
+                    const have = b.staff[role]?.count ?? 0;
+                    const okRole = have >= need;
+                    return (
+                      <span key={role} style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 99,
+                        background: okRole ? 'rgba(15,157,100,0.13)' : 'rgba(220,63,72,0.12)',
+                        color: okRole ? 'var(--success)' : 'var(--danger)' }}>
+                        {STAFF_ROLE_LABELS[role]} {have}/{need}
+                      </span>
+                    );
+                  })}
+                </div>
               </div>
               {b.reputation < 35 && <div style={{ fontSize: 11, color: 'var(--danger)', marginBottom: 6 }}>⚠ Reputation must reach 35 to expand (currently {b.reputation}).</div>}
-              {quote.employeesShort > 0 && <div style={{ fontSize: 11, color: 'var(--danger)', marginBottom: 6 }}>⚠ Hire {quote.employeesShort} more staff first.</div>}
+              {missing.length > 0 && (
+                <div style={{ fontSize: 11, color: 'var(--danger)', marginBottom: 6 }}>
+                  ⚠ Hire first: {missing.map(([role, n]) => `${n} ${STAFF_ROLE_LABELS[role]}`).join(', ')}.
+                </div>
+              )}
               {cashShort && <div style={{ fontSize: 11, color: 'var(--danger)', marginBottom: 6 }}>⚠ Company needs {fmt(quote.totalCost)} (has {fmt(b.cash)}).</div>}
               <button className="lv-btn lv-btn-primary" style={{ background: b.brandColor }} disabled={!canExpand}
                 onClick={() => onExpandLocations(expandCount)}>

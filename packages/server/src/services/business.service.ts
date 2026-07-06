@@ -7,7 +7,8 @@ import {
   ROLE_SALARIES, salaryScale, SUPPLIER_SEARCH_FEE, MAX_SUPPLIER_TIER,
   INDUSTRY_BY_ID, PRODUCT_BY_KEY, productsForIndustry, SUPPLIER_TIERS, SUPPLIER_BY_TIER,
   CONSULTANT_BY_ID, EXPANSION_BY_ID, BUSINESS_EVENTS, TEAM_BUILDING_BY_ID,
-  estimateProductUnits, locationCost, locationEmployees, industryMarketSize,
+  estimateProductUnits, locationCost, industryMarketSize,
+  staffingRequirement, staffingShortfall, STAFF_ROLE_LABELS,
   StaffRole,
 } from '@lifeverse/shared';
 import type {
@@ -84,12 +85,13 @@ export const BusinessService = {
       key: p.key, quality: 50, price: p.basePrice, marketingBudget: 0, productionCost: p.unitCost,
       satisfaction: 50, popularity: 20, unitsSold: 0, inventory: 0, revenue: 0, profit: 0, improveLevel: 0,
     }));
-    const baseCrew = Math.max(1, Math.round(ind.employeeRequirement / 10));
-    const staff: Partial<Record<Role, StaffBlock>> = {
-      [StaffRole.Manager]: { count: 1, skill: 50, morale: 70 },
-      [StaffRole.Sales]: { count: baseCrew, skill: 45, morale: 70 },
-      [StaffRole.Support]: { count: Math.max(1, Math.round(baseCrew / 2)), skill: 45, morale: 70 },
-    };
+    // Seed a realistic role mix for the first location, so the founder starts
+    // with the right kinds of employees (not just warm bodies).
+    const seedReq = staffingRequirement(ind, 1);
+    const staff: Partial<Record<Role, StaffBlock>> = {};
+    for (const [role, n] of Object.entries(seedReq) as Array<[Role, number]>) {
+      staff[role] = { count: n, skill: role === StaffRole.Manager ? 50 : 45, morale: 70 };
+    }
     BusinessModel.update(characterId, { products: starters, staff });
 
     FlagsModel.set(characterId, 'foundedBusiness', true);
@@ -285,7 +287,7 @@ export const BusinessService = {
     return { message: `${def.emoji} ${def.label} complete for ${fmt$(def.cost)}!` };
   },
 
-  /** Open N new locations at once — gated by cash AND staff. */
+  /** Open N new locations at once — gated by cash AND a realistic role mix. */
   expandLocations(characterId: string, count: number): { message: string } {
     const b = requireBusiness(characterId);
     if (count < 1 || count > 50) throw new Error('Choose between 1 and 50 locations.');
@@ -293,11 +295,12 @@ export const BusinessService = {
     if (b.reputation < 35) throw new Error(`Build your reputation to 35+ before expanding (you have ${b.reputation}).`);
     let totalCost = 0;
     for (let i = 0; i < count; i++) totalCost += locationCost(ind, b.branches, i);
-    const perLoc = locationEmployees(ind);
-    const employeesRequired = perLoc * (b.branches + count);
-    const staffTotal = totalStaff(b.staff);
-    if (staffTotal < employeesRequired) {
-      throw new Error(`${count} more location(s) need ${employeesRequired} staff (${perLoc} each); you have ${staffTotal}. Hire ${employeesRequired - staffTotal} more first.`);
+    // Every location needs a proper blend of roles — not just warm bodies.
+    const short = staffingShortfall(ind, b.branches + count, b.staff);
+    const shortRoles = Object.entries(short) as Array<[Role, number]>;
+    if (shortRoles.length > 0) {
+      const list = shortRoles.map(([role, n]) => `${n} more ${STAFF_ROLE_LABELS[role]}`).join(', ');
+      throw new Error(`To run ${b.branches + count} locations you need to hire: ${list}.`);
     }
     if (b.cash < totalCost) throw new Error(`Opening ${count} location(s) costs ${fmt$(totalCost)} — the company has ${fmt$(b.cash)}.`);
     BusinessModel.update(characterId, { cash: b.cash - totalCost, branches: b.branches + count });

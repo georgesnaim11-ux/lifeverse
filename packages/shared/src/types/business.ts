@@ -152,7 +152,11 @@ export interface ExpansionQuote {
   count: number;
   totalCost: number;
   employeesRequired: number;   // total staff needed after expanding
-  employeesShort: number;      // 0 if you already have enough
+  employeesShort: number;      // 0 if you already have enough total
+  /** Required head-count per role after expanding. */
+  requiredByRole: Partial<Record<StaffRole, number>>;
+  /** How many more of each role you must hire (only roles you're short on). */
+  shortByRole: Partial<Record<StaffRole, number>>;
   expectedRevenueDelta: number;
   expectedOpexDelta: number;
   roiPct: number;              // annual return on the expansion outlay

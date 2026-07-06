@@ -315,6 +315,61 @@ export function baseLocationCost(ind: IndustryDef): number {
   return ind.baseLocationCost ?? Math.round(ind.startupCost * 0.6);
 }
 
+/* ── Staffing role mix: every industry needs a realistic blend of roles ── */
+
+/** Role weights per staffing archetype (each ~sums to 1). */
+const STAFFING_PRESETS: Record<string, Partial<Record<Role, number>>> = {
+  foodservice:   { [StaffRole.Manager]: 0.15, [StaffRole.Sales]: 0.55, [StaffRole.Support]: 0.30 },
+  retail:        { [StaffRole.Manager]: 0.15, [StaffRole.Sales]: 0.50, [StaffRole.Support]: 0.20, [StaffRole.Marketing]: 0.15 },
+  creative:      { [StaffRole.Manager]: 0.12, [StaffRole.Designer]: 0.30, [StaffRole.Marketing]: 0.18, [StaffRole.Sales]: 0.30, [StaffRole.Support]: 0.10 },
+  software:      { [StaffRole.Manager]: 0.12, [StaffRole.Engineer]: 0.46, [StaffRole.Designer]: 0.18, [StaffRole.Sales]: 0.14, [StaffRole.Support]: 0.10 },
+  manufacturing: { [StaffRole.Manager]: 0.08, [StaffRole.Engineer]: 0.17, [StaffRole.FactoryWorker]: 0.60, [StaffRole.Sales]: 0.08, [StaffRole.Finance]: 0.07 },
+  hospitality:   { [StaffRole.Manager]: 0.12, [StaffRole.Support]: 0.45, [StaffRole.Sales]: 0.20, [StaffRole.Marketing]: 0.13, [StaffRole.Finance]: 0.10 },
+};
+
+/** Which archetype each industry uses. */
+const INDUSTRY_STAFFING: Record<Industry, keyof typeof STAFFING_PRESETS> = {
+  [Industry.CoffeeShop]: 'foodservice', [Industry.Cafe]: 'foodservice', [Industry.Restaurant]: 'foodservice',
+  [Industry.Bakery]: 'foodservice', [Industry.FastFood]: 'foodservice', [Industry.FoodTruck]: 'foodservice',
+  [Industry.ClothingBrand]: 'creative', [Industry.LuxuryFashion]: 'creative', [Industry.ShoeCompany]: 'creative',
+  [Industry.JewelryBrand]: 'creative', [Industry.ArchitectureFirm]: 'creative',
+  [Industry.TechStartup]: 'software', [Industry.SoftwareCompany]: 'software', [Industry.AICompany]: 'software',
+  [Industry.GameStudio]: 'software', [Industry.MobileApps]: 'software',
+  [Industry.CarDealership]: 'retail', [Industry.RealEstateAgency]: 'retail',
+  [Industry.CarManufacturer]: 'manufacturing', [Industry.EVManufacturer]: 'manufacturing',
+  [Industry.MotorcycleCompany]: 'manufacturing', [Industry.BicycleCompany]: 'manufacturing',
+  [Industry.FurnitureCompany]: 'manufacturing', [Industry.Construction]: 'manufacturing',
+  [Industry.PropertyDeveloper]: 'manufacturing',
+  [Industry.HotelChain]: 'hospitality',
+};
+
+/** The role blend a company of `branches` locations must employ. */
+export function staffingRequirement(ind: IndustryDef, branches: number): Partial<Record<Role, number>> {
+  const total = locationEmployees(ind) * Math.max(1, branches);
+  const weights = STAFFING_PRESETS[INDUSTRY_STAFFING[ind.id] ?? 'retail']!;
+  const req: Partial<Record<Role, number>> = {};
+  for (const [role, w] of Object.entries(weights) as Array<[Role, number]>) {
+    const n = Math.round(total * w);
+    if (n > 0) req[role] = n;
+  }
+  // Any real company needs at least one manager.
+  if (!req[StaffRole.Manager]) req[StaffRole.Manager] = 1;
+  return req;
+}
+
+/** Roles you're short on for a given branch count, given current staff counts. */
+export function staffingShortfall(
+  ind: IndustryDef, branches: number, staff: Partial<Record<Role, { count: number }>>,
+): Partial<Record<Role, number>> {
+  const req = staffingRequirement(ind, branches);
+  const short: Partial<Record<Role, number>> = {};
+  for (const [role, need] of Object.entries(req) as Array<[Role, number]>) {
+    const have = staff[role]?.count ?? 0;
+    if (have < need) short[role] = need - have;
+  }
+  return short;
+}
+
 /** Cost of one location, escalating as the company already has more branches.
  *  `index` is the 0-based offset within a batch being opened at once. */
 export function locationCost(ind: IndustryDef, currentBranches: number, index = 0): number {
@@ -342,12 +397,19 @@ export function optimalPrice(def: ProductDef, qualityEff: number, reputation: nu
   return Math.round(def.basePrice * (sweetSpot + 0.15) * 100) / 100;
 }
 
-/** Advertising multiplier on demand — diminishing returns, industry-dependent. */
+/** Advertising multiplier on demand — diminishing returns, industry-dependent.
+ *  `ref` is the spend that yields a solid boost; kept modest so marketing is
+ *  affordable across industries (a small shop needn't spend a fortune). */
 export function marketingMultiplier(budget: number, ind: IndustryDef): number {
   if (budget <= 0) return 1;
   const eff = marketingEffectiveness(ind) / 100;
-  const ref = Math.max(5000, industryMarketSize(ind) * 0.02);
+  const ref = Math.max(2500, industryMarketSize(ind) * 0.012);
   return 1 + eff * Math.sqrt(budget / ref);
+}
+
+/** A sensible max marketing budget for a product slider — proportionate & affordable. */
+export function marketingBudgetMax(ind: IndustryDef): number {
+  return Math.max(8000, Math.round(industryMarketSize(ind) * 0.12));
 }
 
 /**
@@ -370,17 +432,19 @@ export function estimateProductUnits(
 
 /** Preview for opening `count` new locations at once. Pure — client & server agree. */
 export function expansionQuote(
-  ind: IndustryDef, branches: number, count: number, staffTotal: number,
+  ind: IndustryDef, branches: number, count: number,
+  staff: Partial<Record<Role, { count: number }>>,
   perBranchRevenue: number, perBranchOpex: number,
 ): ExpansionQuote {
   let totalCost = 0;
   for (let i = 0; i < count; i++) totalCost += locationCost(ind, branches, i);
-  const perLoc = locationEmployees(ind);
-  const employeesRequired = perLoc * (branches + count);
-  const employeesShort = Math.max(0, employeesRequired - staffTotal);
+  const requiredByRole = staffingRequirement(ind, branches + count);
+  const shortByRole = staffingShortfall(ind, branches + count, staff);
+  const employeesRequired = Object.values(requiredByRole).reduce((s, n) => s + (n ?? 0), 0);
+  const employeesShort = Object.values(shortByRole).reduce((s, n) => s + (n ?? 0), 0);
   const expectedRevenueDelta = Math.round(perBranchRevenue * count);
   const expectedOpexDelta = Math.round(perBranchOpex * count);
   const annualGain = expectedRevenueDelta - expectedOpexDelta;
   const roiPct = totalCost > 0 ? Math.round((annualGain / totalCost) * 100) : 0;
-  return { count, totalCost, employeesRequired, employeesShort, expectedRevenueDelta, expectedOpexDelta, roiPct };
+  return { count, totalCost, employeesRequired, employeesShort, requiredByRole, shortByRole, expectedRevenueDelta, expectedOpexDelta, roiPct };
 }
