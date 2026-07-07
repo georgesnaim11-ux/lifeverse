@@ -288,9 +288,12 @@ export const BUSINESS_EVENTS: BusinessEventDef[] = [
 
 const clampN = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n));
 
-/** Total dollar market a product competes for, per branch. Bigger industries, bigger markets. */
+/** Total dollar market a product competes for, per branch. Bigger industries, bigger
+ *  markets. The flat floor keeps small, low-capital businesses (a coffee shop, a food
+ *  truck) able to cover their staff and rent when run reasonably — it's negligible next
+ *  to a car maker's startup cost, so it only meaningfully lifts small industries. */
 export function industryMarketSize(ind: IndustryDef): number {
-  return 70000 + ind.startupCost * 1.1;
+  return 115000 + ind.startupCost * 1.1;
 }
 
 /** How much advertising moves sales (0-100). Derived from category when not set. */

@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from 'react';
+import { useState, useEffect, type CSSProperties } from 'react';
 import { BottomSheet } from './BottomSheet';
 import {
   INDUSTRIES, INDUSTRY_BY_ID, INDUSTRY_CATEGORY_LABELS, INDUSTRY_CATEGORY_ORDER,
@@ -103,6 +103,9 @@ function ProductCard(props: {
   const def = PRODUCT_BY_KEY.get(p.key)!;
   const [price, setPrice] = useState(p.price);
   const [budget, setBudget] = useState(p.marketingBudget);
+  // Resync sliders if the committed values change (server clamp, data reload).
+  useEffect(() => { setPrice(p.price); }, [p.price]);
+  useEffect(() => { setBudget(p.marketingBudget); }, [p.marketingBudget]);
 
   const qualityEff = Math.min(100, Math.max(1, p.quality + supplierQualityBonus));
   const appeal = priceAppeal(price, def, qualityEff, reputation, ind.competition);

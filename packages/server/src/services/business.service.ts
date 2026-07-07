@@ -7,7 +7,7 @@ import {
   ROLE_SALARIES, salaryScale, SUPPLIER_SEARCH_FEE, MAX_SUPPLIER_TIER,
   INDUSTRY_BY_ID, PRODUCT_BY_KEY, productsForIndustry, SUPPLIER_TIERS, SUPPLIER_BY_TIER,
   CONSULTANT_BY_ID, EXPANSION_BY_ID, BUSINESS_EVENTS, TEAM_BUILDING_BY_ID,
-  estimateProductUnits, locationCost, industryMarketSize,
+  estimateProductUnits, locationCost, locationEmployees, industryMarketSize,
   staffingRequirement, staffingShortfall, STAFF_ROLE_LABELS,
   StaffRole,
 } from '@lifeverse/shared';
@@ -357,7 +357,8 @@ export const BusinessService = {
   annualUpdate(characterId: string, age: number): void {
     const b = BusinessModel.findByCharacterId(characterId);
     if (!b || !b.isOpen) return;
-    const ind = INDUSTRY_BY_ID.get(b.industry)!;
+    const ind = INDUSTRY_BY_ID.get(b.industry);
+    if (!ind) return; // corrupt/unknown industry — never crash the age-up
     const supplier = SUPPLIER_BY_TIER.get(b.supplierTier) ?? SUPPLIER_TIERS[1]!;
     const has = (cid: string) => b.consultants.includes(cid);
     const upgraded = (id: string) => b.upgrades.includes(id);
@@ -367,7 +368,9 @@ export const BusinessService = {
     const blocks = Object.values(b.staff) as StaffBlock[];
     const avgSkill = blocks.length ? blocks.reduce((s, x) => s + x.skill, 0) / blocks.length : 50;
     const avgMorale = blocks.length ? blocks.reduce((s, x) => s + x.morale, 0) / blocks.length : 50;
-    const needed = b.branches * Math.max(2, Math.round(ind.employeeRequirement / 4));
+    // Same staffing basis the expansion gate uses, so "enough to run" and
+    // "enough to expand" stay consistent.
+    const needed = locationEmployees(ind) * b.branches;
     const coverage = Math.min(1.15, 0.45 + (staffTotal / Math.max(1, needed)) * 0.6);
     // Morale below 55 drags productivity; above lifts it.
     const moraleFactor = 0.6 + avgMorale / 140;
