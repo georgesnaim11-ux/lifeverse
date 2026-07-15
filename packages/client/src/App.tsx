@@ -91,6 +91,7 @@ function CharacterCreation({
   error: string | null;
 }): JSX.Element {
   const [name, setName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [gender, setGender] = useState<'male' | 'female'>('male');
   const [country, setCountry] = useState<string>(DEFAULT_COUNTRY_ID);
   const [allocation, setAllocation] = useState<Record<string, number>>(
@@ -110,7 +111,10 @@ function CharacterCreation({
   function handleSubmit(e: React.FormEvent): void {
     e.preventDefault();
     if (!name.trim()) return;
-    onCreate({ name: name.trim(), gender, country, statAllocation: allocation });
+    onCreate({
+      name: name.trim(), gender, country, statAllocation: allocation,
+      ...(lastName.trim() ? { lastName: lastName.trim() } : {}),
+    });
   }
 
   return (
@@ -124,6 +128,15 @@ function CharacterCreation({
             id="name" className="lv-input" value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Enter your first name…" maxLength={40} required
+          />
+        </div>
+
+        <div className="lv-form-group">
+          <label className="lv-label" htmlFor="lastName">Last Name (Family Name)</label>
+          <input
+            id="lastName" className="lv-input" value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            placeholder="Your family name — shared by your relatives" maxLength={40}
           />
         </div>
 
