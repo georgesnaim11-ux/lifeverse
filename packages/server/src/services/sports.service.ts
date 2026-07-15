@@ -9,7 +9,7 @@ import {
   GOLDEN_BOOT_POINTS, CLUB_RECORD_POINTS, CLEAN_SHEET_SPORTS,
   LOAN_MAX_AGE, LOAN_COACH_THRESHOLD, LOAN_MIN_PRESTIGE, SEASON_HISTORY_CAP,
   SPORT_BY_ID, SCHOOL_TIER_LABELS, TIER_THRESHOLDS, CLUB_BY_ID, clubsForSport,
-  DECISION_BY_ID, SCHOOL_AWARDS, SportsPhase, OfferType,
+  DECISION_BY_ID, SCHOOL_AWARDS, SportsPhase, OfferType, incomeTax,
 } from '@lifeverse/shared';
 import type { Sport, SportsCareerState, StatDelta, SeasonRecord } from '@lifeverse/shared';
 
@@ -361,10 +361,14 @@ export const SportsService = {
     const seasonsPlayed = career.seasonHistory.length;
     fields.avgRating = Math.round(((career.avgRating * seasonsPlayed + rating) / (seasonsPlayed + 1)) * 100) / 100;
 
-    // Salary hits the bank (free agents earn nothing).
+    // Salary hits the bank, net of country income tax (free agents earn nothing).
     const fin = FinanceModel.findByCharacterId(characterId);
-    if (fin && career.salary > 0) FinanceModel.update(characterId, { cash: fin.cash + career.salary });
-    fields.careerEarnings = career.careerEarnings + career.salary;
+    if (fin && career.salary > 0) {
+      const country = CharacterModel.findById(characterId)?.country;
+      const tax = incomeTax(country, career.salary);
+      FinanceModel.update(characterId, { cash: fin.cash + career.salary - tax });
+    }
+    fields.careerEarnings = career.careerEarnings + career.salary; // lifetime gross earnings
     fields.marketValue = Math.round(Math.max(career.salary, 50_000) * (1.5 + performance * 2));
     fields.reputation = clamp(career.reputation + (rating >= 7.5 ? 4 : rating >= 6 ? 1 : -3));
 

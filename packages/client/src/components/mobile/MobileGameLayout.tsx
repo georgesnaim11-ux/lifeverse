@@ -10,7 +10,7 @@ import { HousingSheet } from './HousingSheet';
 import { ShopSheet } from './ShopSheet';
 import { SportsSheet } from './SportsSheet';
 import { BusinessSheet } from './BusinessSheet';
-import { MAJORS, getCountry } from '@lifeverse/shared';
+import { MAJORS, getCountry, SPORT_BY_ID, SportsPhase, INDUSTRY_BY_ID } from '@lifeverse/shared';
 import type {
   CharacterState, GetCharacterResponse, PresentedEvent,
   EarnedAchievement, DomainState,
@@ -195,6 +195,14 @@ export function MobileGameLayout(props: Props): JSX.Element {
 
   function occupationLine(): string {
     if (job) return job.title;
+    // A pro athlete or company founder is employed by their own career, not "unemployed".
+    if (sports && sports.phase === SportsPhase.Pro) {
+      return `Pro ${SPORT_BY_ID.get(sports.sport)?.label ?? 'Sports'} Player`;
+    }
+    if (business && business.isOpen) {
+      return `Founder, ${INDUSTRY_BY_ID.get(business.industry)?.label ?? 'Business'}`;
+    }
+    if (sports && sports.phase === SportsPhase.Retired && sports.careerEarnings > 0) return 'Retired Athlete';
     if (character.major) {
       const m = MAJORS.find((x) => x.key === character.major)?.label ?? '';
       return `Student · ${m}`;

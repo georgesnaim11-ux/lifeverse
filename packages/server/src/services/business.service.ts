@@ -8,7 +8,7 @@ import {
   INDUSTRY_BY_ID, PRODUCT_BY_KEY, productsForIndustry, SUPPLIER_TIERS, SUPPLIER_BY_TIER,
   CONSULTANT_BY_ID, EXPANSION_BY_ID, BUSINESS_EVENTS, TEAM_BUILDING_BY_ID,
   estimateProductUnits, locationCost, locationEmployees, industryMarketSize,
-  staffingRequirement, staffingShortfall, STAFF_ROLE_LABELS,
+  staffingRequirement, staffingShortfall, STAFF_ROLE_LABELS, incomeTax,
   StaffRole,
 } from '@lifeverse/shared';
 import type {
@@ -325,10 +325,15 @@ export const BusinessService = {
   withdraw(characterId: string, amount: number): { message: string } {
     const b = requireBusiness(characterId);
     if (amount <= 0 || b.cash < amount) throw new Error('The company doesn\'t have that much.');
+    // Owner pay is personal income — taxed at the character's country rate.
+    const c = CharacterModel.findById(characterId);
+    const tax = incomeTax(c?.country, amount);
     const fin = FinanceModel.findByCharacterId(characterId);
-    if (fin) FinanceModel.update(characterId, { cash: fin.cash + amount });
+    if (fin) FinanceModel.update(characterId, { cash: fin.cash + amount - tax });
     BusinessModel.update(characterId, { cash: b.cash - amount });
-    return { message: `Withdrew ${fmt$(amount)} from ${b.name} as owner pay.` };
+    return { message: tax > 0
+      ? `Withdrew ${fmt$(amount)} as owner pay — ${fmt$(tax)} income tax, ${fmt$(amount - tax)} to you.`
+      : `Withdrew ${fmt$(amount)} from ${b.name} as owner pay.` };
   },
 
   sellBusiness(characterId: string): { message: string } {

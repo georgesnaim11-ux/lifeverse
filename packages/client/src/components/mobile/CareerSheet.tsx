@@ -72,9 +72,13 @@ export function CareerSheet({
           </div>
           <button className="lv-btn" style={{ marginTop: 8, padding: '10px 0', fontSize: 13, background: 'var(--card-hover)', color: 'var(--danger)', border: '1px solid var(--danger)' }} disabled={isLoading} onClick={onQuit}>Quit Job</button>
         </div>
+      ) : hasCompany ? (
+        <p style={{ fontSize: 13, color: 'var(--muted)', padding: '8px 0 4px' }}>
+          You run {business!.name} (above). Want a traditional job too? Browse below.
+        </p>
       ) : (
         <p style={{ fontSize: 13, color: 'var(--muted)', padding: '8px 0 4px' }}>
-          You're unemployed. Browse jobs below and apply to any you're eligible for.
+          You're not employed. Browse jobs below and apply to any you're eligible for.
         </p>
       )}
 
