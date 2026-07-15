@@ -2,7 +2,7 @@ import './index.css';
 import { useState } from 'react';
 import { useGame } from './hooks/useGame';
 import { MobileGameLayout } from './components/mobile/MobileGameLayout';
-import { GAME_CONSTANTS, STAT_KEYS, COUNTRIES, DEFAULT_COUNTRY_ID } from '@lifeverse/shared';
+import { GAME_CONSTANTS, STAT_KEYS, COUNTRIES, DEFAULT_COUNTRY_ID, topMarginalRate } from '@lifeverse/shared';
 import type { CharacterState, LifeSummary, CharacterCreationInput } from '@lifeverse/shared';
 
 const BLANK_DOMAINS = {
@@ -170,6 +170,11 @@ function CharacterCreation({
               <option key={c.id} value={c.id}>{c.flag} {c.label}</option>
             ))}
           </select>
+          <div className="lv-budget-text" style={{ marginTop: 6 }}>
+            {topMarginalRate(country) === 0
+              ? '🏝️ No income tax here — you keep every dollar you earn.'
+              : `🧾 Income tax up to ${Math.round(topMarginalRate(country) * 100)}% at the top bracket. Higher earners pay more.`}
+          </div>
         </div>
         <div className="lv-form-group">
           <label className="lv-label">Starting Stats</label>

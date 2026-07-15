@@ -1,6 +1,6 @@
-import { FinanceModel, AssetsModel, LoanModel, HousingModel, PropertyModel, VehicleModel, CollectibleModel, BusinessModel } from '../models/index.js';
+import { FinanceModel, AssetsModel, LoanModel, HousingModel, PropertyModel, VehicleModel, CollectibleModel, BusinessModel, CharacterModel } from '../models/index.js';
 import {
-  LifeStage, LoanType, VEHICLE_REGISTRY, annualRentIncome,
+  LifeStage, LoanType, VEHICLE_REGISTRY, annualRentIncome, incomeTax, effectiveTaxRate,
 } from '@lifeverse/shared';
 import type {
   Finance, LifeStage as LifeStageType, ExpenseBreakdown, FinanceSummary, VehicleType,
@@ -90,7 +90,11 @@ export const FinanceService = {
     }
 
     const rentalIncome = this.rentalIncome(characterId);
-    const net = finance.annualIncome + rentalIncome - finance.annualExpenses - loanPaid;
+    // Progressive income tax on salary + rental income, by the character's country.
+    const character = CharacterModel.findById(characterId);
+    const grossIncome = finance.annualIncome + rentalIncome;
+    const tax = incomeTax(character?.country, grossIncome);
+    const net = grossIncome - tax - finance.annualExpenses - loanPaid;
     let newCash = finance.cash + net;
 
     // A shortfall is only financed by a personal loan when the character has
@@ -153,11 +157,17 @@ export const FinanceService = {
     const personalDebt = LoanModel.totalByType(characterId, LoanType.Personal);
     const totalLiabilities = studentDebt + mortgageDebt + personalDebt;
 
+    // Income tax the character will owe on this year's salary + rental income.
+    const country = CharacterModel.findById(characterId)?.country;
+    const grossIncome = annualIncome + rentalIncome;
+    const annualTax = incomeTax(country, grossIncome);
+
     return {
       cash, propertyValue, vehicleValue, totalAssets,
       studentDebt, mortgageDebt, personalDebt, totalLiabilities,
       netWorth: totalAssets - totalLiabilities,
       annualIncome, rentalIncome, portfolioValue: propertyValue, collectiblesValue, businessEquity,
+      annualTax, effectiveTaxRate: effectiveTaxRate(country, grossIncome),
     };
   },
 

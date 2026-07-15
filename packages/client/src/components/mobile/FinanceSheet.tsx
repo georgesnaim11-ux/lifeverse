@@ -39,7 +39,7 @@ const LOAN_LABELS: Record<string, string> = {
 };
 
 export function FinanceSheet({ isOpen, onClose, summary, expenses, loans }: Props): JSX.Element {
-  const netYear = summary.annualIncome + summary.rentalIncome - expenses.total;
+  const netYear = summary.annualIncome + summary.rentalIncome - summary.annualTax - expenses.total;
   return (
     <BottomSheet isOpen={isOpen} onClose={onClose} title="Finances">
       <div style={{ textAlign: 'center', padding: '12px 0 16px' }}>
@@ -80,6 +80,9 @@ export function FinanceSheet({ isOpen, onClose, summary, expenses, loans }: Prop
       <div className="lv-cat-header" style={{ marginTop: 14 }}><span>💵</span><span>Annual Cash Flow</span></div>
       <Row label="Income" value={summary.annualIncome} positive />
       {summary.rentalIncome > 0 && <Row label="Rental Income" value={summary.rentalIncome} positive indent />}
+      {summary.annualTax > 0 && (
+        <Row label={`Income Tax (${Math.round(summary.effectiveTaxRate * 100)}%)`} value={-summary.annualTax} positive={false} indent />
+      )}
       <Row label="Housing" value={-expenses.housing} positive={false} indent />
       <Row label="Vehicle" value={-expenses.vehicle} positive={false} indent />
       <Row label="Education" value={-expenses.education} positive={false} indent />

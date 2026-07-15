@@ -48,6 +48,10 @@ export interface FinanceSummary {
   collectiblesValue: number;
   /** Value of the character's company (valuation while open). */
   businessEquity: number;
+  /** Income tax owed this year on salary + rental income (country-based). */
+  annualTax: number;
+  /** Blended effective income-tax rate this year, 0–1. */
+  effectiveTaxRate: number;
 }
 
 /** A single dated moment in a character's life story. */

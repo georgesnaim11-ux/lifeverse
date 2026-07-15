@@ -153,6 +153,66 @@ export const COUNTRY_REGISTRY: Map<string, CountryData> = new Map(COUNTRIES.map(
 
 export const DEFAULT_COUNTRY_ID = 'usa';
 
+/* ─────────────────────────── Income tax ───────────────────────────
+ * Progressive marginal brackets per country (representative, not exact).
+ * `upTo: null` means "and above". Rates are fractions of income in that band.
+ * Gulf states levy no personal income tax. Applied annually to salary +
+ * rental income in FinanceService.processCashFlow.
+ * ------------------------------------------------------------------ */
+export interface TaxBracket {
+  upTo: number | null;
+  rate: number;
+}
+
+export const TAX_SYSTEMS: Record<string, TaxBracket[]> = {
+  egypt:   [{ upTo: 15000, rate: 0 }, { upTo: 30000, rate: 0.10 }, { upTo: 60000, rate: 0.15 }, { upTo: 200000, rate: 0.20 }, { upTo: null, rate: 0.25 }],
+  usa:     [{ upTo: 11000, rate: 0.10 }, { upTo: 45000, rate: 0.12 }, { upTo: 95000, rate: 0.22 }, { upTo: 200000, rate: 0.24 }, { upTo: 500000, rate: 0.32 }, { upTo: null, rate: 0.37 }],
+  uk:      [{ upTo: 15000, rate: 0 }, { upTo: 50000, rate: 0.20 }, { upTo: 125000, rate: 0.40 }, { upTo: null, rate: 0.45 }],
+  canada:  [{ upTo: 15000, rate: 0 }, { upTo: 55000, rate: 0.15 }, { upTo: 110000, rate: 0.26 }, { upTo: 240000, rate: 0.29 }, { upTo: null, rate: 0.33 }],
+  germany: [{ upTo: 11000, rate: 0 }, { upTo: 62000, rate: 0.25 }, { upTo: 280000, rate: 0.42 }, { upTo: null, rate: 0.45 }],
+  france:  [{ upTo: 11000, rate: 0 }, { upTo: 28000, rate: 0.11 }, { upTo: 80000, rate: 0.30 }, { upTo: 170000, rate: 0.41 }, { upTo: null, rate: 0.45 }],
+  italy:   [{ upTo: 15000, rate: 0.23 }, { upTo: 28000, rate: 0.25 }, { upTo: 50000, rate: 0.35 }, { upTo: null, rate: 0.43 }],
+  spain:   [{ upTo: 12000, rate: 0 }, { upTo: 20000, rate: 0.19 }, { upTo: 35000, rate: 0.24 }, { upTo: 60000, rate: 0.37 }, { upTo: 300000, rate: 0.45 }, { upTo: null, rate: 0.47 }],
+  turkey:  [{ upTo: 32000, rate: 0.15 }, { upTo: 70000, rate: 0.20 }, { upTo: 250000, rate: 0.27 }, { upTo: null, rate: 0.35 }],
+  saudi:   [], // no personal income tax
+  uae:     [], // no personal income tax
+  india:   [{ upTo: 5000, rate: 0 }, { upTo: 15000, rate: 0.05 }, { upTo: 30000, rate: 0.20 }, { upTo: null, rate: 0.30 }],
+  china:   [{ upTo: 5000, rate: 0.03 }, { upTo: 15000, rate: 0.10 }, { upTo: 40000, rate: 0.20 }, { upTo: 100000, rate: 0.25 }, { upTo: null, rate: 0.35 }],
+  japan:   [{ upTo: 15000, rate: 0.05 }, { upTo: 35000, rate: 0.10 }, { upTo: 70000, rate: 0.20 }, { upTo: 130000, rate: 0.23 }, { upTo: 250000, rate: 0.33 }, { upTo: null, rate: 0.45 }],
+  korea:   [{ upTo: 12000, rate: 0.06 }, { upTo: 40000, rate: 0.15 }, { upTo: 80000, rate: 0.24 }, { upTo: 130000, rate: 0.35 }, { upTo: null, rate: 0.42 }],
+  brazil:  [{ upTo: 7000, rate: 0 }, { upTo: 14000, rate: 0.075 }, { upTo: 20000, rate: 0.15 }, { upTo: 28000, rate: 0.225 }, { upTo: null, rate: 0.275 }],
+  mexico:  [{ upTo: 7000, rate: 0.02 }, { upTo: 60000, rate: 0.15 }, { upTo: 120000, rate: 0.22 }, { upTo: null, rate: 0.35 }],
+  australia: [{ upTo: 13000, rate: 0 }, { upTo: 45000, rate: 0.19 }, { upTo: 120000, rate: 0.33 }, { upTo: 180000, rate: 0.37 }, { upTo: null, rate: 0.45 }],
+};
+
+/** Progressive income tax owed on `income` for a country. */
+export function incomeTax(countryId: string | null | undefined, income: number): number {
+  const brackets = (countryId && TAX_SYSTEMS[countryId]) || [];
+  if (income <= 0 || brackets.length === 0) return 0;
+  let tax = 0;
+  let lower = 0;
+  for (const b of brackets) {
+    const upper = b.upTo ?? Infinity;
+    if (income > lower) {
+      tax += (Math.min(income, upper) - lower) * b.rate;
+      lower = upper;
+    } else break;
+  }
+  return Math.round(tax);
+}
+
+/** Blended (effective) tax rate on `income`, 0–1. */
+export function effectiveTaxRate(countryId: string | null | undefined, income: number): number {
+  if (income <= 0) return 0;
+  return incomeTax(countryId, income) / income;
+}
+
+/** Highest marginal bracket rate for a country (0–1); 0 if tax-free. */
+export function topMarginalRate(countryId: string | null | undefined): number {
+  const brackets = (countryId && TAX_SYSTEMS[countryId]) || [];
+  return brackets.reduce((m, b) => Math.max(m, b.rate), 0);
+}
+
 export function getCountry(id: string | null | undefined): CountryData | undefined {
   return id ? COUNTRY_REGISTRY.get(id) : undefined;
 }
